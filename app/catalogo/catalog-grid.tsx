@@ -1,0 +1,204 @@
+'use client'
+
+import { useState } from 'react'
+import { ProductCard } from '@/components/product-card'
+import { ProductDetailModal } from '@/components/product-detail-modal'
+import { ShoppingCart } from '@/components/shopping-cart'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Search, MessageCircle, X } from 'lucide-react'
+import type { Product, Category } from '@/lib/types'
+
+interface CatalogGridProps {
+  products: Product[]
+  categories: Category[]
+}
+
+interface CartItem {
+  product: Product
+  quantity: number
+}
+
+export function CatalogGrid({ products, categories }: CatalogGridProps) {
+  const [search, setSearch] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [cartItems, setCartItems] = useState<CartItem[]>([])
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch = 
+      product.name.toLowerCase().includes(search.toLowerCase()) ||
+      product.description?.toLowerCase().includes(search.toLowerCase())
+    
+    const matchesCategory = 
+      !selectedCategory || product.category_id === selectedCategory
+
+    return matchesSearch && matchesCategory
+  })
+
+  // Ordenar: primero productos con imagen, luego sin imagen
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    // Si A tiene imagen y B no, A va primero
+    if (a.image_url && !b.image_url) return -1
+    // Si B tiene imagen y A no, B va primero
+    if (!a.image_url && b.image_url) return 1
+    // Si ambos tienen imagen o ambos no tienen, mantener orden original
+    return 0
+  })
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS',
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
+
+  const shareFullCatalog = () => {
+    const catalogText = sortedProducts
+      .map((p) => `- ${p.name}: ${formatPrice(p.price)}`)
+      .join('\n')
+    
+    const message = encodeURIComponent(
+      `Catalogo de Media Loca\n\n${catalogText}\n\nVe mas en: ${window.location.href}`
+    )
+    window.open(`https://wa.me/?text=${message}`, '_blank')
+  }
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product)
+    setIsModalOpen(true)
+  }
+
+  const handleAddToCart = (product: Product, quantity: number) => {
+    setCartItems(prev => {
+      const existingItem = prev.find(item => item.product.id === product.id)
+      if (existingItem) {
+        return prev.map(item =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      } else {
+        return [...prev, { product, quantity }]
+      }
+    })
+  }
+
+  const handleUpdateQuantity = (productId: string, quantity: number) => {
+    if (quantity === 0) {
+      setCartItems(prev => prev.filter(item => item.product.id !== productId))
+    } else {
+      setCartItems(prev => prev.map(item =>
+        item.product.id === productId
+          ? { ...item, quantity }
+          : item
+      ))
+    }
+  }
+
+  const handleRemoveItem = (productId: string) => {
+    setCartItems(prev => prev.filter(item => item.product.id !== productId))
+  }
+
+  const handleClearCart = () => {
+    setCartItems([])
+  }
+
+  return (
+    <div>
+      {/* Carrito de compras */}
+      <ShoppingCart
+        items={cartItems}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+      />
+
+      {/* Modal de detalles */}
+      <ProductDetailModal
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAddToCart={handleAddToCart}
+      />
+      {/* Filters */}
+      <div className="mb-8 space-y-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Buscar medias..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          <Button onClick={shareFullCatalog} className="gap-2">
+            <MessageCircle className="h-4 w-4" />
+            Compartir Catalogo
+          </Button>
+        </div>
+
+        {/* Category Filter */}
+        <div className="flex flex-wrap gap-2">
+          <Badge
+            variant={selectedCategory === null ? 'default' : 'outline'}
+            className="cursor-pointer"
+            onClick={() => setSelectedCategory(null)}
+          >
+            Todas
+          </Badge>
+          {categories.map((category) => (
+            <Badge
+              key={category.id}
+              variant={selectedCategory === category.id ? 'default' : 'outline'}
+              className="cursor-pointer"
+              onClick={() => setSelectedCategory(category.id)}
+            >
+              {category.name}
+              {selectedCategory === category.id && (
+                <X className="ml-1 h-3 w-3" />
+              )}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      {sortedProducts.length > 0 ? (
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {sortedProducts.map((product) => (
+            <ProductCard 
+              key={product.id} 
+              product={product} 
+              onClick={() => handleProductClick(product)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="py-12 text-center">
+          <p className="text-lg text-muted-foreground">
+            No encontramos medias con esos filtros
+          </p>
+          <Button 
+            variant="link" 
+            onClick={() => {
+              setSearch('')
+              setSelectedCategory(null)
+            }}
+          >
+            Limpiar filtros
+          </Button>
+        </div>
+      )}
+
+      {/* Results count */}
+      <p className="mt-6 text-center text-sm text-muted-foreground">
+        Mostrando {sortedProducts.length} de {products.length} productos
+      </p>
+    </div>
+  )
+}
