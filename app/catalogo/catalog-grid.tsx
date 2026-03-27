@@ -108,7 +108,49 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
   }
 
   return (
-    <div>
+    <div className="space-y-12">
+      {/* Header Section */}
+      <div className="relative -mx-4 -mt-8 mb-12 overflow-hidden bg-primary px-4 py-20 text-primary-foreground sm:mx-0 sm:rounded-3xl lg:py-24">
+        {/* Background Decorative Elements */}
+        <div className="absolute right-0 top-0 -translate-y-1/4 translate-x-1/4 opacity-20 transition-transform duration-1000 hover:scale-110">
+          <div className="h-64 w-64 rounded-full bg-white blur-3xl" />
+        </div>
+        <div className="absolute left-0 bottom-0 translate-y-1/4 -translate-x-1/4 opacity-10">
+          <div className="h-96 w-96 rounded-full bg-black blur-3xl" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-2xl text-center">
+          <Badge className="mb-4 bg-white/20 text-white border-none backdrop-blur-md px-4 py-1">
+            Colección 2026
+          </Badge>
+          <h1 className="mb-6 text-5xl font-black tracking-tighter sm:text-7xl">
+            MEDIA <span className="text-secondary-foreground">LOCA</span>
+          </h1>
+          <p className="mb-10 text-lg font-light text-primary-foreground/80 sm:text-xl">
+            Diseños únicos que reflejan tu personalidad. Calidad premium en cada paso.
+          </p>
+          
+          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" />
+              <Input
+                placeholder="Busca tu estilo..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-14 w-full rounded-2xl border-none bg-white pl-12 text-black shadow-2xl focus-visible:ring-offset-0"
+              />
+            </div>
+            <Button 
+              onClick={shareFullCatalog} 
+              className="h-14 rounded-2xl bg-black text-white px-8 font-bold shadow-xl transition-all hover:bg-black/90 hover:scale-105 active:scale-95 gap-2"
+            >
+              <MessageCircle className="h-5 w-5" />
+              Compartir Catálogo
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Carrito de compras */}
       <ShoppingCart
         items={cartItems}
@@ -124,58 +166,49 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
         onClose={() => setIsModalOpen(false)}
         onAddToCart={handleAddToCart}
       />
-      {/* Filters */}
-      <div className="mb-8 space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative max-w-sm flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Buscar medias..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button onClick={shareFullCatalog} className="gap-2">
-            <MessageCircle className="h-4 w-4" />
-            Compartir Catalogo
-          </Button>
-        </div>
 
-        {/* Category Filter */}
-        <div className="flex flex-wrap gap-2">
-          <Badge
-            variant={selectedCategory === null ? 'default' : 'outline'}
-            className="cursor-pointer"
+      {/* Filter Section */}
+      <div className="sticky top-4 z-40 mb-8 flex items-center justify-center rounded-2xl bg-background/80 p-2 backdrop-blur-md shadow-lg border border-muted w-fit mx-auto">
+        <div className="flex flex-wrap items-center justify-center gap-1">
+          <Button
+            variant={selectedCategory === null ? 'default' : 'ghost'}
+            size="sm"
+            className={`rounded-xl px-6 transition-all ${selectedCategory === null ? 'shadow-md scale-105' : ''}`}
             onClick={() => setSelectedCategory(null)}
           >
             Todas
-          </Badge>
+          </Button>
           {categories.map((category) => (
-            <Badge
+            <Button
               key={category.id}
-              variant={selectedCategory === category.id ? 'default' : 'outline'}
-              className="cursor-pointer"
+              variant={selectedCategory === category.id ? 'default' : 'ghost'}
+              size="sm"
+              className={`rounded-xl px-6 transition-all ${selectedCategory === category.id ? 'shadow-md scale-105' : ''}`}
               onClick={() => setSelectedCategory(category.id)}
             >
               {category.name}
               {selectedCategory === category.id && (
-                <X className="ml-1 h-3 w-3" />
+                <X className="ml-2 h-3 w-3" />
               )}
-            </Badge>
+            </Button>
           ))}
         </div>
       </div>
 
       {/* Products Grid */}
       {sortedProducts.length > 0 ? (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {sortedProducts.map((product) => (
-            <ProductCard 
+        <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {sortedProducts.map((product, index) => (
+            <div 
               key={product.id} 
-              product={product} 
-              onClick={() => handleProductClick(product)}
-            />
+              className="animate-in fade-in slide-in-from-bottom-4 duration-500" 
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <ProductCard 
+                product={product} 
+                onClick={() => handleProductClick(product)}
+              />
+            </div>
           ))}
         </div>
       ) : (
