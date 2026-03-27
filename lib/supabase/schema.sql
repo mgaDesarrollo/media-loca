@@ -80,8 +80,8 @@ INSERT INTO auth.users (
   raw_user_meta_data
 ) VALUES (
   gen_random_uuid(),
-  'admin@medialoca.com',
-  crypt('admin123', gen_salt('bf')),
+  'profile.curriculum@gmail.com',
+  crypt('Mamichul4', gen_salt('bf')),
   NOW(),
   NOW(),
   NOW(),

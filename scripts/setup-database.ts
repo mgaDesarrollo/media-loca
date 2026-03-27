@@ -29,8 +29,8 @@ async function setupDatabase() {
     console.log('5. Ve a Authentication > Users para verificar el usuario admin')
     
     console.log('\n🔑 Credenciales del usuario admin:')
-    console.log('Email: admin@medialoca.com')
-    console.log('Password: admin123')
+    console.log('Email: profile.curriculum@gmail.com')
+    console.log('Password: Mamichul4')
     
   } catch (error) {
     console.error('❌ Error:', error)

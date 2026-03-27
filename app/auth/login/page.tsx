@@ -75,7 +75,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@medialoca.com"
+                  placeholder="profile.curriculum@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -86,7 +86,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="admin123"
+                  placeholder="Mamichul4"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -103,10 +103,10 @@ export default function LoginPage() {
           <div className="mt-6 rounded-lg bg-muted p-4">
             <p className="text-center text-sm font-medium">Credenciales de acceso:</p>
             <p className="mt-2 text-center text-sm">
-              <strong>Email:</strong> admin@medialoca.com
+              <strong>Email:</strong> profile.curriculum@gmail.com
             </p>
             <p className="text-center text-sm">
-              <strong>Password:</strong> admin123
+              <strong>Password:</strong> Mamichul4
             </p>
           </div>
         </CardContent>

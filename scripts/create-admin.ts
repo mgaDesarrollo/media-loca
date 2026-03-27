@@ -15,8 +15,8 @@ async function createAdminUser() {
     }
   })
   
-  const email = 'admin@medialoca.com'
-  const password = 'admin123'
+  const email = 'profile.curriculum@gmail.com'
+  const password = 'Mamichul4'
   
   try {
     // Crear el usuario
