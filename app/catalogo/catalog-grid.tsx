@@ -110,41 +110,41 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
   return (
     <div className="space-y-12">
       {/* Header Section */}
-      <div className="relative -mx-4 -mt-8 mb-8 overflow-hidden bg-primary px-4 py-10 text-primary-foreground sm:mx-0 sm:rounded-3xl lg:py-12">
+      <div className="relative -mx-4 -mt-8 mb-6 overflow-hidden bg-primary px-4 py-8 text-primary-foreground sm:mx-0 sm:rounded-3xl lg:py-10">
         {/* Background Decorative Elements */}
         <div className="absolute right-0 top-0 -translate-y-1/4 translate-x-1/4 opacity-20 transition-transform duration-1000 hover:scale-110">
-          <div className="h-32 w-32 rounded-full bg-white blur-3xl" />
+          <div className="h-24 w-24 rounded-full bg-white blur-3xl" />
         </div>
         <div className="absolute left-0 bottom-0 translate-y-1/4 -translate-x-1/4 opacity-10">
-          <div className="h-48 w-48 rounded-full bg-black blur-3xl" />
+          <div className="h-32 w-32 rounded-full bg-black blur-3xl" />
         </div>
 
         <div className="relative z-10 mx-auto max-w-2xl text-center">
-          <Badge className="mb-2 bg-white/20 text-white border-none backdrop-blur-md px-3 py-0.5 text-[10px]">
+          <Badge className="mb-1 bg-white/20 text-white border-none backdrop-blur-md px-2.5 py-0 text-[10px]">
             Colección 2026
           </Badge>
-          <h1 className="mb-2 text-3xl font-black tracking-tighter sm:text-5xl">
+          <h1 className="mb-1 text-2xl font-black tracking-tighter sm:text-4xl">
             MEDIA <span className="text-secondary-foreground">LOCA</span>
           </h1>
-          <p className="mb-6 text-sm font-light text-primary-foreground/80 sm:text-base">
+          <p className="mb-4 text-xs font-light text-primary-foreground/80 sm:text-sm">
             Diseños únicos que reflejan tu personalidad. Calidad premium en cada paso.
           </p>
           
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
             <div className="relative w-full max-w-sm">
-              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+              <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-primary" />
               <Input
                 placeholder="Busca tu estilo..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-11 w-full rounded-xl border-none bg-white pl-10 text-black shadow-xl focus-visible:ring-offset-0"
+                className="h-10 w-full rounded-xl border-none bg-white pl-9 text-black shadow-xl focus-visible:ring-offset-0 text-sm"
               />
             </div>
             <Button 
               onClick={shareFullCatalog} 
-              className="h-11 rounded-xl bg-black text-white px-6 font-bold shadow-xl transition-all hover:bg-black/90 hover:scale-105 active:scale-95 gap-2 text-sm"
+              className="h-10 rounded-xl bg-black text-white px-5 font-bold shadow-xl transition-all hover:bg-black/90 hover:scale-105 active:scale-95 gap-2 text-xs"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-3.5 w-3.5" />
               Compartir Catálogo
             </Button>
           </div>
