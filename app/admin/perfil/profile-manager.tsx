@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { upsertProfileConfig } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -9,20 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
-import { Mail, Phone, MapPin, Globe, Building, Save } from 'lucide-react'
-
-interface ProfileConfig {
-  id?: string
-  store_name: string
-  email: string
-  phone: string
-  whatsapp: string
-  address: string
-  description: string
-  social_facebook?: string
-  social_instagram?: string
-  updated_at?: string
-}
+import { Mail, MapPin, Globe, Building, Save } from 'lucide-react'
+import type { ProfileConfig } from '@/lib/types'
 
 interface ProfileManagerProps {
   initialConfig: ProfileConfig | null
@@ -30,9 +19,9 @@ interface ProfileManagerProps {
 
 export function ProfileManager({ initialConfig }: ProfileManagerProps) {
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
+  const router = useRouter()
 
-  const [formData, setFormData] = useState<ProfileConfig>({
+  const [formData, setFormData] = useState({
     store_name: initialConfig?.store_name || 'Media Loca',
     email: initialConfig?.email || '',
     phone: initialConfig?.phone || '',
@@ -48,46 +37,34 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
     setLoading(true)
 
     try {
-      if (initialConfig?.id) {
-        // Actualizar configuración existente
-        const { error } = await supabase
-          .from('profile_config')
-          .update({
-            ...formData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', initialConfig.id)
-
-        if (error) throw error
-        toast.success('Perfil actualizado correctamente')
-      } else {
-        // Crear nueva configuración
-        const { error } = await supabase
-          .from('profile_config')
-          .insert({
-            ...formData,
-            created_at: new Date().toISOString(),
-          })
-
-        if (error) throw error
-        toast.success('Perfil creado correctamente')
-      }
-    } catch (error) {
+      await upsertProfileConfig({
+        id: initialConfig?.id,
+        store_name: formData.store_name,
+        email: formData.email,
+        phone: formData.phone || null,
+        whatsapp: formData.whatsapp || null,
+        address: formData.address || null,
+        description: formData.description || null,
+        social_facebook: formData.social_facebook || null,
+        social_instagram: formData.social_instagram || null,
+      })
+      toast.success('Perfil guardado correctamente')
+      router.refresh()
+    } catch {
       toast.error('Error al guardar el perfil')
-      console.error('Error:', error)
     }
 
     setLoading(false)
   }
 
-  const InfoCard = ({ 
-    title, 
-    icon: Icon, 
-    children 
-  }: { 
+  const InfoCard = ({
+    title,
+    icon: Icon,
+    children,
+  }: {
     title: string
-    icon: any
-    children: React.ReactNode 
+    icon: React.ComponentType<{ className?: string }>
+    children: React.ReactNode
   }) => (
     <Card>
       <CardHeader>
@@ -96,15 +73,12 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        {children}
-      </CardContent>
+      <CardContent>{children}</CardContent>
     </Card>
   )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Información Básica */}
       <InfoCard title="Información Básica" icon={Building}>
         <FieldGroup>
           <Field>
@@ -130,7 +104,6 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
         </FieldGroup>
       </InfoCard>
 
-      {/* Contacto */}
       <InfoCard title="Contacto" icon={Mail}>
         <FieldGroup>
           <Field>
@@ -167,7 +140,6 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
         </FieldGroup>
       </InfoCard>
 
-      {/* Ubicación */}
       <InfoCard title="Ubicación" icon={MapPin}>
         <FieldGroup>
           <Field>
@@ -183,7 +155,6 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
         </FieldGroup>
       </InfoCard>
 
-      {/* Redes Sociales */}
       <InfoCard title="Redes Sociales" icon={Globe}>
         <FieldGroup>
           <Field>
@@ -207,7 +178,6 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
         </FieldGroup>
       </InfoCard>
 
-      {/* Botón de Guardar */}
       <div className="flex justify-end">
         <Button type="submit" disabled={loading} size="lg" className="gap-2">
           {loading && <Spinner className="h-4 w-4" />}

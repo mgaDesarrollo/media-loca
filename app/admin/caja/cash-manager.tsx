@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createCashEntry } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,10 +18,9 @@ import type { CashRegisterEntry } from '@/lib/types'
 
 interface CashManagerProps {
   initialEntries: CashRegisterEntry[]
-  userId: string
 }
 
-export function CashManager({ initialEntries, userId }: CashManagerProps) {
+export function CashManager({ initialEntries }: CashManagerProps) {
   const [entries, setEntries] = useState(initialEntries)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -31,7 +30,6 @@ export function CashManager({ initialEntries, userId }: CashManagerProps) {
     description: '',
   })
   const router = useRouter()
-  const supabase = createClient()
 
   const balance = entries.reduce((acc, entry) => {
     if (entry.type === 'income' || entry.type === 'sale') {
@@ -60,20 +58,18 @@ export function CashManager({ initialEntries, userId }: CashManagerProps) {
       amount = -Math.abs(amount)
     }
 
-    const { error } = await supabase.from('cash_register').insert({
-      user_id: userId,
-      type: formData.type,
-      amount: amount,
-      description: formData.description || null,
-    })
-
-    if (error) {
+    try {
+      await createCashEntry({
+        type: formData.type,
+        amount,
+        description: formData.description || null,
+      })
+      toast.success('Movimiento registrado')
+    } catch {
       toast.error('Error al registrar movimiento')
       setLoading(false)
       return
     }
-
-    toast.success('Movimiento registrado')
     setLoading(false)
     setIsDialogOpen(false)
     setFormData({ type: 'income', amount: '', description: '' })

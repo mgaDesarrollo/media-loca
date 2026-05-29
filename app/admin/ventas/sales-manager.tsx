@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createSale } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,7 +19,6 @@ import type { Product, Sale } from '@/lib/types'
 interface SalesManagerProps {
   initialSales: Sale[]
   products: Product[]
-  userId: string
 }
 
 interface CartItem {
@@ -27,7 +26,7 @@ interface CartItem {
   quantity: number
 }
 
-export function SalesManager({ initialSales, products, userId }: SalesManagerProps) {
+export function SalesManager({ initialSales, products }: SalesManagerProps) {
   const [sales, setSales] = useState(initialSales)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
@@ -36,7 +35,6 @@ export function SalesManager({ initialSales, products, userId }: SalesManagerPro
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const addToCart = () => {
     const product = products.find((p) => p.id === selectedProduct)
@@ -77,60 +75,24 @@ export function SalesManager({ initialSales, products, userId }: SalesManagerPro
 
     setLoading(true)
 
-    // Create sale
-    const { data: sale, error: saleError } = await supabase
-      .from('sales')
-      .insert({
-        user_id: userId,
+    try {
+      await createSale({
         total: cartTotal,
         notes: notes || null,
+        items: cart.map((item) => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+          unit_price: item.product.price,
+          subtotal: item.product.price * item.quantity,
+          new_stock: item.product.stock - item.quantity,
+        })),
       })
-      .select()
-      .single()
-
-    if (saleError || !sale) {
+      toast.success('Venta registrada!')
+    } catch {
       toast.error('Error al crear la venta')
       setLoading(false)
       return
     }
-
-    // Create sale items
-    const saleItems = cart.map((item) => ({
-      sale_id: sale.id,
-      product_id: item.product.id,
-      quantity: item.quantity,
-      unit_price: item.product.price,
-      subtotal: item.product.price * item.quantity,
-    }))
-
-    const { error: itemsError } = await supabase
-      .from('sale_items')
-      .insert(saleItems)
-
-    if (itemsError) {
-      toast.error('Error al registrar los items')
-      setLoading(false)
-      return
-    }
-
-    // Register in cash register
-    await supabase.from('cash_register').insert({
-      user_id: userId,
-      type: 'sale',
-      amount: cartTotal,
-      description: `Venta #${sale.id.slice(0, 8)}`,
-      sale_id: sale.id,
-    })
-
-    // Update stock
-    for (const item of cart) {
-      await supabase
-        .from('products')
-        .update({ stock: item.product.stock - item.quantity })
-        .eq('id', item.product.id)
-    }
-
-    toast.success('Venta registrada!')
     setLoading(false)
     setIsDialogOpen(false)
     setCart([])

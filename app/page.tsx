@@ -3,41 +3,28 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
-import { createClient } from '@/lib/supabase/server'
-import { FaHeart, FaTruck, FaStar, FaGem, FaShare } from 'react-icons/fa'
+import { auth } from '@/auth'
+import { getActiveCategories, getProductsWithCategories } from '@/lib/db/queries'
+import { FaHeart, FaTruck, FaGem, FaShare } from 'react-icons/fa'
 import { CatalogGrid } from '@/app/catalogo/catalog-grid'
-import type { Product, Category } from '@/lib/types'
 
 export default async function HomePage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // Obtener productos para mostrar directamente
-  const { data: products } = await supabase
-    .from('products')
-    .select('*, categories(*)')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name')
+  const session = await auth()
+  const products = await getProductsWithCategories(true)
+  const categories = await getActiveCategories()
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header isAuthenticated={!!user} />
+      <Header isAuthenticated={!!session?.user} />
 
       <main className="flex-1">
-        {/* Hero Section */}
         <section className="relative overflow-hidden px-4 py-6 md:py-12">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
           <div className="container mx-auto text-center">
-            {/* Logo */}
             <div className="mb-4 flex justify-center">
-              <Image 
-                src="/logomedialoca.png"  // Vuelve a esta línea
-                alt="Media Loca Logo" 
+              <Image
+                src="/logomedialoca.png"
+                alt="Media Loca Logo"
                 width={336}
                 height={336}
                 className="rounded-lg"
@@ -57,17 +44,12 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* Catálogo Directo */}
         <section className="px-4 py-8">
           <div className="container mx-auto">
-            <CatalogGrid
-              products={(products as Product[]) || []}
-              categories={(categories as Category[]) || []}
-            />
+            <CatalogGrid products={products} categories={categories} />
           </div>
         </section>
 
-        {/* Features Section */}
         <section className="border-y border-border/40 bg-muted/30 px-4 py-12">
           <div className="container mx-auto">
             <div className="grid gap-6 md:grid-cols-3">
@@ -102,7 +84,6 @@ export default async function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section */}
         <section className="px-4 py-16">
           <div className="container mx-auto">
             <div className="mx-auto max-w-2xl rounded-2xl bg-primary p-6 text-center text-primary-foreground md:p-10">
@@ -113,12 +94,7 @@ export default async function HomePage() {
                 Envia nuestro catálogo por WhatsApp y ayudanos a crecer.
                 Tus amigos te lo van a agradecer.
               </p>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="gap-2"
-                asChild
-              >
+              <Button size="lg" variant="secondary" className="gap-2" asChild>
                 <a
                   href="https://wa.me/?text=Mira%20estas%20medias%20increibles%20de%20Media%20Loca!%20%F0%9F%A7%A6%E2%9C%A8"
                   target="_blank"

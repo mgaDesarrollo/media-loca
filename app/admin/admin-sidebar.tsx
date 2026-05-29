@@ -2,21 +2,21 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Wallet, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Wallet,
   LogOut,
   Menu,
   Home,
   TrendingUp,
   Tag,
-  Settings
+  Settings,
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -38,11 +38,10 @@ const navItems = [
 export function AdminSidebar({ userEmail }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClient()
   const [open, setOpen] = useState(false)
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await signOut({ redirect: false })
     toast.success('Sesion cerrada')
     router.push('/')
     router.refresh()
@@ -71,9 +70,9 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
               onClick={() => setOpen(false)}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                isActive
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )}
             >
               <Icon className="h-4 w-4" />
@@ -94,8 +93,8 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
         <div className="px-3 py-2">
           <p className="truncate text-xs text-muted-foreground">{userEmail}</p>
         </div>
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground"
           onClick={handleLogout}
         >
@@ -108,7 +107,6 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
 
   return (
     <>
-      {/* Mobile */}
       <div className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
@@ -128,12 +126,10 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
         </Sheet>
       </div>
 
-      {/* Desktop */}
       <aside className="hidden w-64 flex-col border-r bg-background p-4 md:flex">
         <NavContent />
       </aside>
 
-      {/* Mobile spacer */}
       <div className="h-14 md:hidden" />
     </>
   )

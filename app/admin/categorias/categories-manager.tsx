@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { deleteCategory, upsertCategory } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,7 +27,6 @@ export function CategoriesManager({ initialCategories }: CategoriesManagerProps)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -62,36 +61,18 @@ export function CategoriesManager({ initialCategories }: CategoriesManagerProps)
     e.preventDefault()
     setLoading(true)
 
-    const categoryData = {
-      name: formData.name,
-      description: formData.description || null,
-      is_active: formData.is_active,
-      updated_at: new Date().toISOString(),
-    }
-
-    if (editingCategory) {
-      const { error } = await supabase
-        .from('categories')
-        .update(categoryData)
-        .eq('id', editingCategory.id)
-
-      if (error) {
-        toast.error('Error al actualizar categoría')
-        setLoading(false)
-        return
-      }
-      toast.success('Categoría actualizada')
-    } else {
-      const { error } = await supabase
-        .from('categories')
-        .insert(categoryData)
-
-      if (error) {
-        toast.error('Error al crear categoría')
-        setLoading(false)
-        return
-      }
-      toast.success('Categoría creada')
+    try {
+      await upsertCategory({
+        id: editingCategory?.id,
+        name: formData.name,
+        description: formData.description || null,
+        is_active: formData.is_active,
+      })
+      toast.success(editingCategory ? 'Categoría actualizada' : 'Categoría creada')
+    } catch {
+      toast.error(editingCategory ? 'Error al actualizar categoría' : 'Error al crear categoría')
+      setLoading(false)
+      return
     }
 
     setLoading(false)
@@ -103,12 +84,9 @@ export function CategoriesManager({ initialCategories }: CategoriesManagerProps)
   const handleDelete = async (categoryId: string) => {
     if (!confirm('Estas seguro de eliminar esta categoría? Los productos en esta categoría no se eliminarán.')) return
 
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', categoryId)
-
-    if (error) {
+    try {
+      await deleteCategory(categoryId)
+    } catch {
       toast.error('Error al eliminar categoría')
       return
     }

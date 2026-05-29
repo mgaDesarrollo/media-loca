@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Outfit, Space_Grotesk } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { Toaster } from '@/components/ui/sonner'
+import { AuthSessionProvider } from '@/components/providers/session-provider'
 import './globals.css'
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -47,7 +48,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Simply+Olive&display=swap" rel="stylesheet" />
       </head>
       <body className={`${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
-        {children}
+        <AuthSessionProvider>{children}</AuthSessionProvider>
         <Toaster position="top-center" />
         <Analytics />
       </body>

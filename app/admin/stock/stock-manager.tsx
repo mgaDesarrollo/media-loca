@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
+import { updateProductStock } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -22,7 +23,7 @@ export function StockManager({ products }: StockManagerProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingStock, setEditingStock] = useState<Product | null>(null)
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
+  const router = useRouter()
 
   const [formData, setFormData] = useState({
     stock: '',
@@ -62,15 +63,11 @@ export function StockManager({ products }: StockManagerProps) {
     const oldStock = editingStock?.stock || 0
     const adjustment = newStock - oldStock
 
-    const { error } = await supabase
-      .from('products')
-      .update({
-        stock: newStock,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', editingStock?.id)
+    if (!editingStock) return
 
-    if (error) {
+    try {
+      await updateProductStock(editingStock.id, newStock)
+    } catch {
       toast.error('Error al actualizar stock')
       setLoading(false)
       return
@@ -85,7 +82,7 @@ export function StockManager({ products }: StockManagerProps) {
     setLoading(false)
     setIsDialogOpen(false)
     resetForm()
-    window.location.reload() // Recargar para actualizar los datos
+    router.refresh()
   }
 
   const formatPrice = (price: number) => {

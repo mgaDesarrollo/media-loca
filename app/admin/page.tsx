@@ -1,36 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { getCashRegisterByUser, getProductCount, getSalesTotals } from '@/lib/db/queries'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Package, ShoppingCart, Wallet, TrendingUp } from 'lucide-react'
 
 export default async function AdminDashboard() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const session = await auth()
+  const userId = session!.user!.id
 
-  // Get stats
-  const { count: productCount } = await supabase
-    .from('products')
-    .select('*', { count: 'exact', head: true })
+  const productCount = await getProductCount()
+  const salesData = await getSalesTotals(userId)
+  const cashData = await getCashRegisterByUser(userId)
 
-  const { data: salesData } = await supabase
-    .from('sales')
-    .select('total')
-    .eq('user_id', user!.id)
+  const totalSales = salesData.reduce((acc, sale) => acc + Number(sale.total), 0)
+  const salesCount = salesData.length
 
-  const totalSales = salesData?.reduce((acc, sale) => acc + Number(sale.total), 0) || 0
-  const salesCount = salesData?.length || 0
-
-  const { data: cashData } = await supabase
-    .from('cash_register')
-    .select('amount, type')
-    .eq('user_id', user!.id)
-
-  const cashBalance = cashData?.reduce((acc, entry) => {
+  const cashBalance = cashData.reduce((acc, entry) => {
     if (entry.type === 'income' || entry.type === 'sale') {
       return acc + Number(entry.amount)
-    } else {
-      return acc - Math.abs(Number(entry.amount))
     }
-  }, 0) || 0
+    return acc - Math.abs(Number(entry.amount))
+  }, 0)
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -43,7 +32,7 @@ export default async function AdminDashboard() {
   const stats = [
     {
       title: 'Productos',
-      value: productCount || 0,
+      value: productCount,
       description: 'en el catalogo',
       icon: Package,
       color: 'text-blue-600',
@@ -110,13 +99,11 @@ export default async function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Acciones rapidas</CardTitle>
-            <CardDescription>
-              Gestiona tu negocio facilmente
-            </CardDescription>
+            <CardDescription>Gestiona tu negocio facilmente</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-2">
-            <a 
-              href="/admin/productos" 
+            <a
+              href="/admin/productos"
               className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
             >
               <Package className="h-5 w-5 text-primary" />
@@ -125,8 +112,8 @@ export default async function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Suma nuevas medias al catalogo</p>
               </div>
             </a>
-            <a 
-              href="/admin/ventas" 
+            <a
+              href="/admin/ventas"
               className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
             >
               <ShoppingCart className="h-5 w-5 text-primary" />
@@ -135,8 +122,8 @@ export default async function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Agrega una nueva venta</p>
               </div>
             </a>
-            <a 
-              href="/admin/caja" 
+            <a
+              href="/admin/caja"
               className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
             >
               <Wallet className="h-5 w-5 text-primary" />
@@ -151,9 +138,7 @@ export default async function AdminDashboard() {
         <Card>
           <CardHeader>
             <CardTitle>Consejos</CardTitle>
-            <CardDescription>
-              Tips para hacer crecer tu negocio
-            </CardDescription>
+            <CardDescription>Tips para hacer crecer tu negocio</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-lg bg-primary/5 p-4">

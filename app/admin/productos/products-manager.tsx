@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { deleteProduct, upsertProduct } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -29,7 +29,6 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const [formData, setFormData] = useState({
     name: '',
@@ -87,66 +86,36 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
     
     // Si es un archivo, subirlo primero
     if (imageInputType === 'file' && selectedFile) {
-      const fileExt = selectedFile.name.split('.').pop()
-      const fileName = `${Date.now()}.${fileExt}`
-      
-      console.log('Subiendo archivo:', fileName, 'Tipo:', fileExt, 'Tamaño:', selectedFile.size)
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(fileName, selectedFile)
-      
-      console.log('Resultado upload:', { uploadData, uploadError })
-      
-      if (uploadError) {
-        console.error('Error detallado:', uploadError)
-        toast.error(`Error al subir imagen: ${uploadError.message}`)
+      const uploadForm = new FormData()
+      uploadForm.append('file', selectedFile)
+      const uploadResponse = await fetch('/api/upload', { method: 'POST', body: uploadForm })
+
+      if (!uploadResponse.ok) {
+        toast.error('Error al subir imagen')
         setLoading(false)
         return
       }
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(fileName)
-      
-      console.log('URL pública:', publicUrl)
-      imageUrl = publicUrl
+
+      const { url } = (await uploadResponse.json()) as { url: string }
+      imageUrl = url
     }
 
-    const productData = {
-      name: formData.name,
-      description: formData.description || null,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      category_id: formData.category_id || null,
-      is_active: formData.is_active,
-      image_url: imageUrl || null,
-      updated_at: new Date().toISOString(),
-    }
-
-    if (editingProduct) {
-      const { error } = await supabase
-        .from('products')
-        .update(productData)
-        .eq('id', editingProduct.id)
-
-      if (error) {
-        toast.error('Error al actualizar producto')
-        setLoading(false)
-        return
-      }
-      toast.success('Producto actualizado')
-    } else {
-      const { error } = await supabase
-        .from('products')
-        .insert(productData)
-
-      if (error) {
-        toast.error('Error al crear producto')
-        setLoading(false)
-        return
-      }
-      toast.success('Producto creado')
+    try {
+      await upsertProduct({
+        id: editingProduct?.id,
+        name: formData.name,
+        description: formData.description || null,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        category_id: formData.category_id || null,
+        is_active: formData.is_active,
+        image_url: imageUrl || null,
+      })
+      toast.success(editingProduct ? 'Producto actualizado' : 'Producto creado')
+    } catch {
+      toast.error(editingProduct ? 'Error al actualizar producto' : 'Error al crear producto')
+      setLoading(false)
+      return
     }
 
     setLoading(false)
@@ -158,12 +127,9 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
   const handleDelete = async (productId: string) => {
     if (!confirm('Estas seguro de eliminar este producto?')) return
 
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', productId)
-
-    if (error) {
+    try {
+      await deleteProduct(productId)
+    } catch {
       toast.error('Error al eliminar producto')
       return
     }

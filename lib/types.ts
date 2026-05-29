@@ -49,3 +49,17 @@ export interface CashRegisterEntry {
   sale_id: string | null
   created_at: string
 }
+
+export interface ProfileConfig {
+  id: string
+  store_name: string
+  email: string
+  phone: string | null
+  whatsapp: string | null
+  address: string | null
+  description: string | null
+  social_facebook: string | null
+  social_instagram: string | null
+  created_at: string
+  updated_at: string
+}
