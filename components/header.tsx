@@ -30,7 +30,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
           </Link>
         </div>
 
-        <nav className="flex items-center gap-4">
+        <nav className="flex items-center gap-2 sm:gap-4">
           <Link href="/catalogo" className="text-sm font-medium hover:text-primary">
             Catálogo
           </Link>

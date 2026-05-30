@@ -50,7 +50,7 @@ export async function upsertProduct(data: {
         price = ${data.price},
         stock = ${data.stock},
         category_id = ${data.category_id},
-        is_active = ${data.is_active},
+        is_active = CASE WHEN ${data.stock} = 0 THEN false ELSE ${data.is_active} END,
         image_url = ${data.image_url},
         updated_at = NOW()
       WHERE id = ${data.id}
@@ -64,7 +64,7 @@ export async function upsertProduct(data: {
         ${data.price},
         ${data.stock},
         ${data.category_id},
-        ${data.is_active},
+        CASE WHEN ${data.stock} = 0 THEN false ELSE ${data.is_active} END,
         ${data.image_url}
       )
     `
@@ -119,7 +119,11 @@ export async function deleteCategory(id: string) {
 export async function updateProductStock(id: string, stock: number) {
   await requireAuth()
   await sql`
-    UPDATE products SET stock = ${stock}, updated_at = NOW() WHERE id = ${id}
+    UPDATE products SET 
+      stock = ${stock}, 
+      is_active = CASE WHEN ${stock} = 0 THEN false ELSE is_active END,
+      updated_at = NOW() 
+    WHERE id = ${id}
   `
   revalidateAdmin()
   return { success: true }
@@ -171,10 +175,10 @@ export async function createSale(data: {
          VALUES ($1, $2, $3, $4, $5)`,
         [saleId, item.product_id, item.quantity, item.unit_price, item.subtotal],
       )
-      await client.query(`UPDATE products SET stock = $1, updated_at = NOW() WHERE id = $2`, [
-        item.new_stock,
-        item.product_id,
-      ])
+      await client.query(
+        `UPDATE products SET stock = $1, is_active = CASE WHEN $1 = 0 THEN false ELSE is_active END, updated_at = NOW() WHERE id = $2`,
+        [item.new_stock, item.product_id]
+      )
     }
 
     await client.query(

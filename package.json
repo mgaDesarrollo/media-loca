@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint .",
     "db:migrate": "npx tsx scripts/migrate-neon.ts",
-    "db:seed-admin": "npx tsx scripts/seed-admin.ts"
+    "db:seed-admin": "npx tsx scripts/seed-admin.ts",
+    "db:update-prices": "npx tsx scripts/seed-update-prices.ts",
+    "test:sales": "npx tsx scripts/test-sales.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

@@ -27,7 +27,7 @@ export default async function HomePage() {
                 alt="Media Loca Logo"
                 width={336}
                 height={336}
-                className="rounded-lg"
+                className="rounded-lg w-48 h-48 sm:w-64 sm:h-64 md:w-84 md:h-84 object-contain"
               />
             </div>
 

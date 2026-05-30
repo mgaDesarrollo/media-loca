@@ -56,19 +56,19 @@ export function ProductCard({ product, onShare, onClick }: ProductCardProps) {
         <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
 
         {/* Badges container */}
-        <div className="absolute left-3 top-3 flex flex-col gap-2">
+        <div className="absolute left-3 top-3 flex flex-col gap-2 max-w-[calc(100%-24px)]">
           {product.categories && (
-            <Badge className="w-fit bg-primary/80 backdrop-blur-md text-primary-foreground border-none font-medium px-2.5 py-0.5">
+            <Badge className="max-w-[120px] bg-primary/80 backdrop-blur-md text-primary-foreground border-none font-medium px-2.5 py-0.5 truncate">
               {product.categories.name}
             </Badge>
           )}
           {product.stock <= 5 && product.stock > 0 && (
-            <Badge className="w-fit bg-amber-500/90 backdrop-blur-md text-white border-none animate-pulse">
+            <Badge className="max-w-[120px] bg-amber-500/90 backdrop-blur-md text-white border-none animate-pulse truncate">
               ¡Últimas {product.stock}!
             </Badge>
           )}
           {product.stock === 0 && (
-            <Badge variant="secondary" className="w-fit bg-destructive/90 backdrop-blur-md text-destructive-foreground border-none">
+            <Badge variant="secondary" className="max-w-[120px] bg-destructive/90 backdrop-blur-md text-destructive-foreground border-none truncate">
               Agotado
             </Badge>
           )}
@@ -89,22 +89,22 @@ export function ProductCard({ product, onShare, onClick }: ProductCardProps) {
         </div>
       </div>
 
-      <CardContent className="p-5 flex flex-col justify-between h-[140px]">
-        <div className="space-y-1.5">
-          <h3 className="font-bold text-lg leading-tight tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+      <CardContent className="p-3 sm:p-5 flex flex-col justify-between h-[120px] sm:h-[140px]">
+        <div className="space-y-1">
+          <h3 className="font-bold text-base sm:text-lg leading-tight tracking-tight group-hover:text-primary transition-colors line-clamp-1">
             {product.name}
           </h3>
           {product.description && (
-            <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
+            <p className="line-clamp-2 text-[10px] sm:text-xs text-muted-foreground leading-relaxed">
               {product.description}
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-1 sm:pt-2">
           <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Precio</span>
-            <span className="text-xl font-bold text-primary tracking-tight">
+            <span className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider">Precio</span>
+            <span className="text-lg sm:text-xl font-bold text-primary tracking-tight">
               {formatPrice(product.price)}
             </span>
           </div>

@@ -13,11 +13,11 @@ export function Footer() {
             <span className="font-semibold">Media Loca</span>
           </div>
           
-          <p className="flex items-center gap-1 text-sm text-muted-foreground">
-            Hecho con <FaHeart className="h-4 w-4 fill-primary text-primary" /> en Córdoba, Argentina por Eloy
+          <p className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground text-center">
+            Hecho con <FaHeart className="h-3 sm:h-4 w-3 sm:w-4 fill-primary text-primary" /> en Córdoba, Argentina por Eloy
           </p>
           
-          <nav className="flex gap-4 text-sm text-muted-foreground">
+          <nav className="flex flex-wrap justify-center gap-2 sm:gap-4 text-sm text-muted-foreground">
             <Link href="/catalogo" className="transition-colors hover:text-foreground">
               Catalogo
             </Link>
@@ -31,7 +31,8 @@ export function Footer() {
               className="flex items-center gap-1 transition-colors hover:text-foreground"
             >
               <FaWhatsapp className="h-4 w-4" />
-              Contactar Desarrollador Web
+              <span className="hidden sm:inline">Contactar Desarrollador Web</span>
+              <span className="sm:hidden">Contactar</span>
             </a>
           </nav>
         </div>

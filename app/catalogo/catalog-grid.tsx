@@ -168,12 +168,12 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
       />
 
       {/* Filter Section */}
-      <div className="sticky top-4 z-40 mb-8 flex items-center justify-center rounded-2xl bg-background/80 p-2 backdrop-blur-md shadow-lg border border-muted w-fit mx-auto">
-        <div className="flex flex-wrap items-center justify-center gap-1">
+      <div className="sticky top-4 z-40 mb-8 flex items-center justify-center rounded-2xl bg-background/80 p-2 backdrop-blur-md shadow-lg border border-muted w-full max-w-fit mx-auto">
+        <div className="flex flex-wrap items-center justify-center gap-1 px-1">
           <Button
             variant={selectedCategory === null ? 'default' : 'ghost'}
             size="sm"
-            className={`rounded-xl px-6 transition-all ${selectedCategory === null ? 'shadow-md scale-105' : ''}`}
+            className={`rounded-xl px-4 sm:px-6 transition-all ${selectedCategory === null ? 'shadow-md scale-105' : ''}`}
             onClick={() => setSelectedCategory(null)}
           >
             Todas
@@ -183,12 +183,12 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
               key={category.id}
               variant={selectedCategory === category.id ? 'default' : 'ghost'}
               size="sm"
-              className={`rounded-xl px-6 transition-all ${selectedCategory === category.id ? 'shadow-md scale-105' : ''}`}
+              className={`rounded-xl px-3 sm:px-6 transition-all ${selectedCategory === category.id ? 'shadow-md scale-105' : ''}`}
               onClick={() => setSelectedCategory(category.id)}
             >
-              {category.name}
+              <span className="truncate max-w-[80px] sm:max-w-none">{category.name}</span>
               {selectedCategory === category.id && (
-                <X className="ml-2 h-3 w-3" />
+                <X className="ml-1 sm:ml-2 h-3 w-3" />
               )}
             </Button>
           ))}
@@ -197,7 +197,7 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
 
       {/* Products Grid */}
       {sortedProducts.length > 0 ? (
-        <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {sortedProducts.map((product, index) => (
             <div 
               key={product.id} 

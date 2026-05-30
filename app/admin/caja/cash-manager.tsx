@@ -150,7 +150,7 @@ export function CashManager({ initialEntries }: CashManagerProps) {
       </div>
 
       {/* Add entry */}
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-end">
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
