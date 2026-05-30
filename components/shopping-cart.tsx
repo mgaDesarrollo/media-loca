@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { ShoppingCart as ShoppingCartIcon, X, Plus, Minus, MessageCircle, Trash2 } from 'lucide-react'
+import { ShoppingCart as ShoppingCartIcon, X, Plus, Minus, MessageCircle, Trash2, TrendingUp, AlertCircle } from 'lucide-react'
 import type { Product } from '@/lib/types'
+import { calculatePromotion, getNextDiscountMessage, formatPrice as formatPromotionPrice } from '@/lib/promotions'
 
 interface CartItem {
   product: Product
@@ -40,38 +41,92 @@ export function ShoppingCart({
     return items.reduce((total, item) => total + item.quantity, 0)
   }
 
+  const getAveragePrice = () => {
+    if (items.length === 0) return 0
+    const totalPrice = items.reduce((total, item) => total + (item.product.price * item.quantity), 0)
+    return totalPrice / getTotalItems()
+  }
+
   const getTotalPrice = () => {
+    const totalPairs = getTotalItems()
+    const avgPrice = getAveragePrice()
+    const promotion = calculatePromotion(totalPairs, avgPrice)
+    return promotion.discountedTotal
+  }
+
+  const getOriginalTotal = () => {
     return items.reduce((total, item) => total + (item.product.price * item.quantity), 0)
   }
 
-  const handleCheckout = () => {
-    const cartItems = items.map(item => 
-      `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
-    ).join('\n')
-    
-    const message = encodeURIComponent(
-      `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
-      `${cartItems}\n\n` +
-      `Total: ${formatPrice(getTotalPrice())}\n\n` +
-      `¿Podrían confirmarme disponibilidad y formas de pago?`
-    )
-    
-    window.open(`https://wa.me/?text=${message}`, '_blank')
-    onClearCart()
-    setIsOpen(false)
+  const promotion = calculatePromotion(getTotalItems(), getAveragePrice())
+  const discountMessage = getNextDiscountMessage(promotion.pairsNeededForNextTier, promotion.savings)
+
+  const validateStock = () => {
+    const lowStockItems = items.filter(item => item.quantity > item.product.stock)
+    return lowStockItems.length === 0
+  }
+
+  const handleCheckout = async () => {
+    if (!validateStock()) {
+      alert('Algunos productos tienen stock insuficiente. Por favor reduce las cantidades.')
+      return
+    }
+
+    try {
+      const { createOrder } = await import('@/lib/actions/admin')
+      
+      const orderItems = items.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        unit_price: promotion.pricePerPair > 0 ? promotion.pricePerPair : item.product.price,
+        subtotal: (promotion.pricePerPair > 0 ? promotion.pricePerPair : item.product.price) * item.quantity,
+      }))
+
+      const result = await createOrder({
+        customer_name: null,
+        customer_email: null,
+        customer_phone: null,
+        total: getTotalPrice(),
+        notes: `Pedido desde web - ${getTotalItems()} pares`,
+        items: orderItems,
+      })
+
+      if (result.success) {
+        const cartItems = items.map(item =>
+          `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
+        ).join('\n')
+
+        const promotionText = promotion.savings > 0
+          ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
+          : ''
+
+        const message = encodeURIComponent(
+          `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
+          `${cartItems}\n\n` +
+          `Total: ${formatPrice(getTotalPrice())}${promotionText}\n\n` +
+          `Número de pedido: #${result.orderId.slice(0, 8)}\n\n` +
+          `¿Podrían confirmarme disponibilidad y formas de pago?`
+        )
+
+        window.open(`https://wa.me/?text=${message}`, '_blank')
+        onClearCart()
+        setIsOpen(false)
+      }
+    } catch {
+      alert('Error al crear el pedido. Por favor intenta nuevamente.')
+    }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg gap-2 md:relative md:bottom-auto md:right-auto md:h-auto md:w-auto md:rounded-md">
-          <ShoppingCartIcon className="h-4 w-4" />
+        <Button className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg gap-2 z-50 border-2 border-black bg-white text-black hover:bg-gray-100">
+          <ShoppingCartIcon className="h-6 w-6" />
           {getTotalItems() > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 text-xs">
+            <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 text-xs border-2 border-black bg-primary text-white">
               {getTotalItems()}
             </Badge>
           )}
-          <span className="hidden md:inline">Carrito</span>
         </Button>
       </DialogTrigger>
       
@@ -106,6 +161,82 @@ export function ShoppingCart({
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Promotion Progress Bar */}
+            {getTotalItems() > 0 && (
+              <Card className="border-primary/20 bg-primary/5">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-sm">Promociones por cantidad</span>
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {getTotalItems()} {getTotalItems() === 1 ? 'par' : 'pares'}
+                      </Badge>
+                    </div>
+                    
+                    {/* Progress bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{promotion.currentTier.label}</span>
+                        {promotion.nextTier && (
+                          <span>{promotion.nextTier.label}</span>
+                        )}
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-primary transition-all duration-300"
+                          style={{ 
+                            width: promotion.nextTier 
+                              ? `${(getTotalItems() / promotion.nextTier.minPairs) * 100}%`
+                              : '100%'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Dynamic discount message */}
+                    {discountMessage && (
+                      <div className="flex items-start gap-2 text-sm text-primary">
+                        <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <p className="font-medium">{discountMessage}</p>
+                      </div>
+                    )}
+
+                    {/* Current promotion info */}
+                    {promotion.savings > 0 && (
+                      <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                        <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                          ¡Precio promocional aplicado!
+                        </span>
+                        <span className="text-sm font-bold text-green-700 dark:text-green-300">
+                          {formatPromotionPrice(promotion.pricePerPair)}/par
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stock validation warning */}
+            {!validateStock() && (
+              <Card className="border-destructive/20 bg-destructive/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-2 text-sm text-destructive">
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium">Stock insuficiente</p>
+                      <p className="text-xs mt-1">
+                        Algunos productos exceden el stock disponible. Por favor reduce las cantidades.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Items del carrito */}
             <div className="space-y-3">
               {items.map((item) => (
@@ -183,15 +314,36 @@ export function ShoppingCart({
             <Card>
               <CardContent className="p-4">
                 <div className="space-y-3">
+                  {promotion.savings > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground line-through">
+                        Precio original:
+                      </span>
+                      <span className="text-sm text-muted-foreground line-through">
+                        {formatPrice(getOriginalTotal())}
+                      </span>
+                    </div>
+                  )}
+                  
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
-                    <span className="text-primary">{formatPrice(getTotalPrice())}</span>
+                    <div className="text-right">
+                      {promotion.savings > 0 && (
+                        <span className="text-sm text-green-600 dark:text-green-400 block">
+                          Ahorrás {formatPrice(promotion.savings)}
+                        </span>
+                      )}
+                      <span className={promotion.savings > 0 ? "text-green-600 dark:text-green-400" : "text-primary"}>
+                        {formatPrice(getTotalPrice())}
+                      </span>
+                    </div>
                   </div>
                   
                   <Button
                     onClick={handleCheckout}
                     className="w-full gap-2"
                     size="lg"
+                    disabled={!validateStock()}
                   >
                     <MessageCircle className="h-4 w-4" />
                     Enviar pedido por WhatsApp

@@ -101,7 +101,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
     }
 
     try {
-      await upsertProduct({
+      const result = await upsertProduct({
         id: editingProduct?.id,
         name: formData.name,
         description: formData.description || null,
@@ -111,6 +111,13 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
         is_active: formData.is_active,
         image_url: imageUrl || null,
       })
+      
+      if (editingProduct) {
+        setProducts(products.map(p => p.id === editingProduct.id ? result.product : p))
+      } else {
+        setProducts([result.product, ...products])
+      }
+      
       toast.success(editingProduct ? 'Producto actualizado' : 'Producto creado')
     } catch {
       toast.error(editingProduct ? 'Error al actualizar producto' : 'Error al crear producto')
@@ -121,7 +128,6 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
     setLoading(false)
     setIsDialogOpen(false)
     resetForm()
-    router.refresh()
   }
 
   const handleDelete = async (productId: string) => {

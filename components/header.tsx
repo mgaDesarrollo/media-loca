@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { User, LogOut, Package, MessageCircle, ShoppingCart as ShoppingCartIcon } from 'lucide-react'
+import { User, LogOut, Package, MessageCircle } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
 
 interface HeaderProps {

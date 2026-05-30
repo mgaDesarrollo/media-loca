@@ -60,7 +60,7 @@ async function testSales() {
     
     console.log(`   Registrando venta de ${individualQuantity}x ${product1.name}...`)
     
-    const userId = await sql`SELECT id FROM auth.users LIMIT 1` as { id: string }[]
+    const userId = await sql`SELECT id FROM users LIMIT 1` as { id: string }[]
     if (userId.length === 0) {
       console.error('❌ No hay usuarios en el sistema')
       process.exit(1)

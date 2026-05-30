@@ -26,6 +26,8 @@ export interface Sale {
   user_id: string
   total: number
   notes: string | null
+  payment_method: 'cash' | 'virtual'
+  is_test: boolean
   created_at: string
   sale_items?: SaleItem[]
 }
@@ -62,4 +64,39 @@ export interface ProfileConfig {
   social_instagram: string | null
   created_at: string
   updated_at: string
+}
+
+export interface PromotionTier {
+  id: string
+  min_pairs: number
+  max_pairs: number
+  price_per_pair: number
+  label: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface Order {
+  id: string
+  customer_name: string | null
+  customer_email: string | null
+  customer_phone: string | null
+  total: number
+  notes: string | null
+  status: 'pending' | 'confirmed' | 'cancelled'
+  created_at: string
+  updated_at: string
+  order_items?: OrderItem[]
+}
+
+export interface OrderItem {
+  id: string
+  order_id: string
+  product_id: string
+  quantity: number
+  unit_price: number
+  subtotal: number
+  created_at: string
+  products?: Product
 }

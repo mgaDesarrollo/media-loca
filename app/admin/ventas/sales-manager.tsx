@@ -12,9 +12,11 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Plus, Trash2, ShoppingCart } from 'lucide-react'
+import { Plus, Trash2, ShoppingCart, TrendingUp, AlertCircle } from 'lucide-react'
 import type { Product, Sale } from '@/lib/types'
+import { calculatePromotion, getNextDiscountMessage, formatPrice as formatPromotionPrice } from '@/lib/promotions'
 
 interface SalesManagerProps {
   initialSales: Sale[]
@@ -37,6 +39,8 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
   const [loading, setLoading] = useState(false)
   const [isPackMode, setIsPackMode] = useState(false)
   const [packPrice, setPackPrice] = useState('')
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'virtual'>('cash')
+  const [isTestMode, setIsTestMode] = useState(false)
   const router = useRouter()
 
   const addToCart = () => {
@@ -88,12 +92,32 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
     setCart(cart.filter((item) => item.product.id !== productId))
   }
 
+  const getTotalPairs = () => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0)
+  }
+
+  const getAveragePrice = () => {
+    if (cart.length === 0) return 0
+    const totalPrice = cart.reduce((sum, item) => sum + (item.customPrice || item.product.price) * item.quantity, 0)
+    return totalPrice / getTotalPairs()
+  }
+
   const cartTotal = isPackMode && packPrice 
     ? parseFloat(packPrice)
-    : cart.reduce(
-        (acc, item) => acc + (item.customPrice || item.product.price) * item.quantity,
-        0
-      )
+    : (() => {
+        const totalPairs = getTotalPairs()
+        const avgPrice = getAveragePrice()
+        const promotion = calculatePromotion(totalPairs, avgPrice)
+        return promotion.discountedTotal
+      })()
+
+  const promotion = calculatePromotion(getTotalPairs(), getAveragePrice())
+  const discountMessage = getNextDiscountMessage(promotion.pairsNeededForNextTier, promotion.savings)
+
+  const validateStock = () => {
+    const lowStockItems = cart.filter(item => item.quantity > item.product.stock)
+    return lowStockItems.length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,20 +131,25 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
       return
     }
 
+    if (!validateStock() && !isTestMode) {
+      toast.error('Algunos productos tienen stock insuficiente')
+      return
+    }
+
     setLoading(true)
 
     try {
       const items = cart.map((item) => {
         const unitPrice = isPackMode && packPrice 
           ? parseFloat(packPrice) / cart.reduce((sum, i) => sum + i.quantity, 0)
-          : (item.customPrice || item.product.price)
+          : promotion.pricePerPair
         
         return {
           product_id: item.product.id,
           quantity: item.quantity,
           unit_price: unitPrice,
           subtotal: unitPrice * item.quantity,
-          new_stock: item.product.stock - item.quantity,
+          new_stock: isTestMode ? item.product.stock : item.product.stock - item.quantity,
         }
       })
 
@@ -128,8 +157,10 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
         total: cartTotal,
         notes: notes || null,
         items,
+        payment_method: paymentMethod,
+        is_test: isTestMode,
       })
-      toast.success('Venta registrada!')
+      toast.success(isTestMode ? 'Venta de prueba registrada (no afecta stock)' : 'Venta registrada!')
     } catch {
       toast.error('Error al crear la venta')
       setLoading(false)
@@ -141,6 +172,8 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
     setNotes('')
     setIsPackMode(false)
     setPackPrice('')
+    setPaymentMethod('cash')
+    setIsTestMode(false)
     router.refresh()
   }
 
@@ -172,14 +205,14 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
               Nueva Venta
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+          <DialogContent className="max-h-[90vh] max-w-3xl sm:max-w-4xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Registrar Venta</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {/* Mode Toggle */}
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-muted rounded-lg gap-3">
                   <div>
                     <p className="font-medium">Modo Pack</p>
                     <p className="text-xs text-muted-foreground">Vender múltiples medias como un pack con precio personalizado</p>
@@ -188,6 +221,7 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
                     type="button"
                     variant={isPackMode ? "default" : "outline"}
                     onClick={() => setIsPackMode(!isPackMode)}
+                    className="w-full sm:w-auto"
                   >
                     {isPackMode ? "Pack Activado" : "Activar Pack"}
                   </Button>
@@ -241,7 +275,7 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <div className="flex-1">
                         <label className="text-sm font-medium mb-1 block">Cantidad</label>
                         <Input
@@ -253,9 +287,9 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
                         />
                       </div>
                       <div className="flex items-end">
-                        <Button 
-                          type="button" 
-                          onClick={addToCart} 
+                        <Button
+                          type="button"
+                          onClick={addToCart}
                           disabled={!selectedProduct}
                           className="w-full sm:w-auto min-w-[120px]"
                         >
@@ -267,24 +301,112 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
                   </CardContent>
                 </Card>
 
+                {/* Promotion Progress Bar */}
+                {cart.length > 0 && !isPackMode && (
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4 text-primary" />
+                            <span className="font-medium text-sm">Promociones por cantidad</span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {getTotalPairs()} {getTotalPairs() === 1 ? 'par' : 'pares'}
+                          </Badge>
+                        </div>
+                        
+                        {/* Progress bar */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                            <span>{promotion.currentTier.label}</span>
+                            {promotion.nextTier && (
+                              <span>{promotion.nextTier.label}</span>
+                            )}
+                          </div>
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary transition-all duration-300"
+                              style={{ 
+                                width: promotion.nextTier 
+                                  ? `${(getTotalPairs() / promotion.nextTier.minPairs) * 100}%`
+                                  : '100%'
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Dynamic discount message */}
+                        {discountMessage && (
+                          <div className="flex items-start gap-2 text-sm text-primary">
+                            <TrendingUp className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <p className="font-medium">{discountMessage}</p>
+                          </div>
+                        )}
+
+                        {/* Current promotion info */}
+                        {promotion.savings > 0 && (
+                          <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                            <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                              ¡Precio promocional aplicado!
+                            </span>
+                            <span className="text-sm font-bold text-green-700 dark:text-green-300">
+                              {formatPromotionPrice(promotion.pricePerPair)}/par
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Stock validation warning */}
+                {!validateStock() && (
+                  <Card className="border-destructive/20 bg-destructive/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-2 text-sm text-destructive">
+                        <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="font-medium">Stock insuficiente</p>
+                          <p className="text-xs mt-1">
+                            Algunos productos exceden el stock disponible. Por favor reduce las cantidades.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Cart Section */}
                 {cart.length > 0 && (
                   <Card>
                     <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <CardTitle className="flex items-center gap-2 text-base">
                           <ShoppingCart className="h-4 w-4" />
                           Carrito ({cart.length} {cart.length === 1 ? 'producto' : 'productos'})
                         </CardTitle>
                         <div className="text-right">
+                          {promotion.savings > 0 && !isPackMode && (
+                            <p className="text-xs text-muted-foreground line-through">
+                              {formatPrice(promotion.originalTotal)}
+                            </p>
+                          )}
                           <p className="text-sm text-muted-foreground">Total</p>
-                          <p className="text-2xl font-bold text-primary">{formatPrice(cartTotal)}</p>
+                          <p className={`text-xl sm:text-2xl font-bold ${promotion.savings > 0 && !isPackMode ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>
+                            {formatPrice(cartTotal)}
+                          </p>
+                          {promotion.savings > 0 && !isPackMode && (
+                            <p className="text-xs text-green-600 dark:text-green-400">
+                              Ahorrás {formatPrice(promotion.savings)}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
                       {/* Desktop Table */}
-                      <div className="hidden md:block">
+                      <div className="hidden md:block overflow-x-auto">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -398,20 +520,77 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
                       id="notes"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Nombre del cliente, forma de pago, dirección de envío, etc."
+                      placeholder="Nombre del cliente, dirección de envío, etc."
                       rows={3}
                     />
                   </Field>
                 </FieldGroup>
+
+                {/* Payment Method Section */}
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel>Forma de Pago</FieldLabel>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="cash"
+                          checked={paymentMethod === 'cash'}
+                          onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'virtual')}
+                          className="h-4 w-4"
+                        />
+                        <span>Efectivo</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="virtual"
+                          checked={paymentMethod === 'virtual'}
+                          onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'virtual')}
+                          className="h-4 w-4"
+                        />
+                        <span>Transferencia/Mercado Pago</span>
+                      </label>
+                    </div>
+                  </Field>
+                </FieldGroup>
+
+                {/* Test Mode Section */}
+                <Field>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <input
+                      type="checkbox"
+                      id="testMode"
+                      checked={isTestMode}
+                      onChange={(e) => setIsTestMode(e.target.checked)}
+                      className="h-4 w-4 sm:mt-0"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="testMode" className="font-medium text-sm text-yellow-800 dark:text-yellow-200 cursor-pointer">
+                        Modo Prueba
+                      </label>
+                      <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                        No modifica el stock ni registra en caja. Útil para probar promociones.
+                      </p>
+                    </div>
+                  </div>
+                </Field>
               </div>
 
               <div className="mt-6 flex flex-col-reverse sm:flex-row justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={loading || cart.length === 0} className="w-full sm:w-auto">
+                <Button 
+                  type="submit" 
+                  disabled={loading || cart.length === 0 || (!validateStock() && !isTestMode)} 
+                  className="w-full sm:w-auto"
+                  variant={isTestMode ? "outline" : "default"}
+                >
                   {loading && <Spinner className="mr-2" />}
-                  Registrar Venta ({formatPrice(cartTotal)})
+                  {isTestMode ? 'Registrar Venta de Prueba' : 'Registrar Venta'} ({formatPrice(cartTotal)})
                 </Button>
               </div>
             </form>

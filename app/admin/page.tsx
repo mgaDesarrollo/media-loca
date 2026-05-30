@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { getCashRegisterByUser, getProductCount, getSalesTotals } from '@/lib/db/queries'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Package, ShoppingCart, Wallet, TrendingUp } from 'lucide-react'
+import { Package, ShoppingCart, Wallet, TrendingUp, ClipboardList } from 'lucide-react'
 
 export default async function AdminDashboard() {
   const session = await auth()
@@ -120,6 +120,16 @@ export default async function AdminDashboard() {
               <div>
                 <p className="font-medium">Registrar venta</p>
                 <p className="text-sm text-muted-foreground">Agrega una nueva venta</p>
+              </div>
+            </a>
+            <a
+              href="/admin/pedidos"
+              className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
+            >
+              <ClipboardList className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">Ver pedidos</p>
+                <p className="text-sm text-muted-foreground">Confirma pedidos de clientes</p>
               </div>
             </a>
             <a

@@ -6,6 +6,7 @@ import type {
   ProfileConfig,
   Sale,
   SaleItem,
+  PromotionTier,
 } from '@/lib/types'
 
 type ProductRow = Product & { categories: Category | null }
@@ -148,4 +149,11 @@ export async function getProfileConfig(): Promise<ProfileConfig | null> {
     SELECT * FROM profile_config ORDER BY created_at ASC LIMIT 1
   `
   return (rows[0] as ProfileConfig | undefined) ?? null
+}
+
+export async function getPromotionTiers(): Promise<PromotionTier[]> {
+  const rows = await sql`
+    SELECT * FROM promotion_config ORDER BY min_pairs ASC
+  `
+  return rows as PromotionTier[]
 }

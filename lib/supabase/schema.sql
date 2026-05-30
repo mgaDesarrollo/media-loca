@@ -28,6 +28,8 @@ CREATE TABLE IF NOT EXISTS sales (
   user_id UUID REFERENCES auth.users(id),
   total DECIMAL(10,2) NOT NULL,
   notes TEXT,
+  payment_method TEXT NOT NULL CHECK (payment_method IN ('cash', 'virtual')),
+  is_test BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -35,6 +37,30 @@ CREATE TABLE IF NOT EXISTS sales (
 CREATE TABLE IF NOT EXISTS sale_items (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   sale_id UUID REFERENCES sales(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id),
+  quantity INTEGER NOT NULL,
+  unit_price DECIMAL(10,2) NOT NULL,
+  subtotal DECIMAL(10,2) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Pedidos de clientes
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_name TEXT,
+  customer_email TEXT,
+  customer_phone TEXT,
+  total DECIMAL(10,2) NOT NULL,
+  notes TEXT,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'confirmed', 'cancelled')) DEFAULT 'pending',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Items de pedido
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
   product_id UUID REFERENCES products(id),
   quantity INTEGER NOT NULL,
   unit_price DECIMAL(10,2) NOT NULL,
@@ -52,6 +78,26 @@ CREATE TABLE IF NOT EXISTS cash_register (
   sale_id UUID REFERENCES sales(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Configuración de promociones
+CREATE TABLE IF NOT EXISTS promotion_config (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  min_pairs INTEGER NOT NULL,
+  max_pairs INTEGER NOT NULL,
+  price_per_pair DECIMAL(10,2) NOT NULL,
+  label TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insertar configuración de promociones por defecto
+INSERT INTO promotion_config (min_pairs, max_pairs, price_per_pair, label, is_active) VALUES
+(1, 2, 0, 'Precio normal', true),
+(3, 5, 3800, 'Pack 3-5 pares', true),
+(6, 11, 3500, 'Pack 6-11 pares', true),
+(12, 999999, 3200, 'Pack 12+ pares', true)
+ON CONFLICT DO NOTHING;
 
 -- Insertar categorías de ejemplo
 INSERT INTO categories (name, description) VALUES
