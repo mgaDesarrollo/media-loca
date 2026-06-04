@@ -20,14 +20,26 @@ export async function POST(request: Request) {
   const fileName = `${Date.now()}.${ext}`
 
   if (process.env.BLOB_READ_WRITE_TOKEN) {
-    const blob = await put(`products/${fileName}`, file, { access: 'public' })
-    return Response.json({ url: blob.url })
+    try {
+      const blob = await put(`products/${fileName}`, file, { access: 'public' })
+      return Response.json({ url: blob.url })
+    } catch (error) {
+      console.error('Error uploading to Vercel Blob:', error)
+      return Response.json({ error: 'Error al subir imagen a Vercel Blob' }, { status: 500 })
+    }
   }
 
-  const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-  await mkdir(uploadsDir, { recursive: true })
-  const buffer = Buffer.from(await file.arrayBuffer())
-  await writeFile(path.join(uploadsDir, fileName), buffer)
-
-  return Response.json({ url: `/uploads/${fileName}` })
+  try {
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
+    await mkdir(uploadsDir, { recursive: true })
+    const buffer = Buffer.from(await file.arrayBuffer())
+    await writeFile(path.join(uploadsDir, fileName), buffer)
+    return Response.json({ url: `/uploads/${fileName}` })
+  } catch (error) {
+    console.error('Error saving to local filesystem:', error)
+    return Response.json({ 
+      error: 'No se puede guardar la imagen. Configura Vercel Blob Storage para producción.',
+      needsBlobStorage: true
+    }, { status: 500 })
+  }
 }

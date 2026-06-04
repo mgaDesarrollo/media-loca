@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" className="light">
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Simply+Olive&display=swap" rel="stylesheet" />
       </head>

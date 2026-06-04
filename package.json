@@ -10,7 +10,10 @@
     "db:migrate": "npx tsx scripts/migrate-neon.ts",
     "db:seed-admin": "npx tsx scripts/seed-admin.ts",
     "db:update-prices": "npx tsx scripts/seed-update-prices.ts",
-    "test:sales": "npx tsx scripts/test-sales.ts"
+    "test:sales": "npx tsx scripts/test-sales.ts",
+    "migrate-images": "npx tsx scripts/migrate-images.ts",
+    "check-image-urls": "npx tsx scripts/check-image-urls.ts",
+    "update-blob-urls": "npx tsx scripts/update-blob-urls.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
