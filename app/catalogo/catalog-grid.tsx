@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ProductCard } from '@/components/product-card'
 import { ProductDetailModal } from '@/components/product-detail-modal'
 import { ShoppingCart } from '@/components/shopping-cart'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, MessageCircle, X } from 'lucide-react'
-import type { Product, Category } from '@/lib/types'
+import { MessageCircle, X, TrendingUp } from 'lucide-react'
+import type { Product, Category, PromotionTier } from '@/lib/types'
+import { getPromotionTiers } from '@/lib/db/queries'
 
 interface CatalogGridProps {
   products: Product[]
@@ -21,21 +21,21 @@ interface CartItem {
 }
 
 export function CatalogGrid({ products, categories }: CatalogGridProps) {
-  const [search, setSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
+  const [promotionTiers, setPromotionTiers] = useState<PromotionTier[]>([])
+
+  useEffect(() => {
+    getPromotionTiers().then(setPromotionTiers)
+  }, [])
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = 
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.description?.toLowerCase().includes(search.toLowerCase())
-    
-    const matchesCategory = 
+    const matchesCategory =
       !selectedCategory || product.category_id === selectedCategory
 
-    return matchesSearch && matchesCategory
+    return matchesCategory
   })
 
   // Ordenar: primero productos con imagen, luego sin imagen
@@ -129,25 +129,32 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
           <p className="mb-4 text-xs font-light text-primary-foreground/80 sm:text-sm">
             Diseños únicos que reflejan tu personalidad. Calidad premium en cada paso.
           </p>
-          
-          <div className="flex flex-col items-center justify-center gap-2 sm:flex-row">
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-primary" />
-              <Input
-                placeholder="Busca tu estilo..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-10 w-full rounded-xl border-none bg-white pl-9 text-black shadow-xl focus-visible:ring-offset-0 text-sm"
-              />
+
+          {/* Promociones por cantidad - Responsivo */}
+          {promotionTiers.length > 0 && (
+            <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {promotionTiers
+                  .filter(tier => tier.is_active)
+                  .sort((a, b) => a.min_pairs - b.min_pairs)
+                  .map((tier) => (
+                    <Badge
+                      key={tier.id}
+                      className="bg-white/20 text-white border-none backdrop-blur-md px-3 py-1 text-[10px] sm:text-xs"
+                    >
+                      {tier.min_pairs}+ pares: {formatPrice(tier.price_per_pair)}/u
+                    </Badge>
+                  ))}
+              </div>
+              <Button
+                onClick={shareFullCatalog}
+                className="h-8 rounded-xl bg-black text-white px-4 font-bold shadow-xl transition-all hover:bg-black/90 hover:scale-105 active:scale-95 gap-2 text-[10px] sm:text-xs"
+              >
+                <MessageCircle className="h-3 w-3" />
+                Compartir
+              </Button>
             </div>
-            <Button 
-              onClick={shareFullCatalog} 
-              className="h-10 rounded-xl bg-black text-white px-5 font-bold shadow-xl transition-all hover:bg-black/90 hover:scale-105 active:scale-95 gap-2 text-xs"
-            >
-              <MessageCircle className="h-3.5 w-3.5" />
-              Compartir Catálogo
-            </Button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -216,12 +223,9 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
           <p className="text-lg text-muted-foreground">
             No encontramos medias con esos filtros
           </p>
-          <Button 
-            variant="link" 
-            onClick={() => {
-              setSearch('')
-              setSelectedCategory(null)
-            }}
+          <Button
+            variant="link"
+            onClick={() => setSelectedCategory(null)}
           >
             Limpiar filtros
           </Button>

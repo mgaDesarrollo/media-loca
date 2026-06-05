@@ -73,7 +73,7 @@ export function ShoppingCart({
     }
 
     try {
-      const { createOrder } = await import('@/lib/actions/admin')
+      const { createOrder, getProfileConfigPublic } = await import('@/lib/actions/admin')
       
       const orderItems = items.map(item => ({
         product_id: item.product.id,
@@ -92,6 +92,9 @@ export function ShoppingCart({
       })
 
       if (result.success) {
+        const profile = await getProfileConfigPublic()
+        const whatsappNumber = profile?.whatsapp || ''
+        
         const cartItems = items.map(item =>
           `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
         ).join('\n')
@@ -100,15 +103,22 @@ export function ShoppingCart({
           ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
           : ''
 
+        const orderUrl = `${window.location.origin}/pedido/${result.orderId}`
+        
         const message = encodeURIComponent(
           `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
           `${cartItems}\n\n` +
           `Total: ${formatPrice(getTotalPrice())}${promotionText}\n\n` +
+          `📋 Ver pedido: ${orderUrl}\n` +
           `Número de pedido: #${result.orderId.slice(0, 8)}\n\n` +
           `¿Podrían confirmarme disponibilidad y formas de pago?`
         )
 
-        window.open(`https://wa.me/?text=${message}`, '_blank')
+        const whatsappUrl = whatsappNumber 
+          ? `https://wa.me/${whatsappNumber}?text=${message}`
+          : `https://wa.me/?text=${message}`
+        
+        window.open(whatsappUrl, '_blank')
         onClearCart()
         setIsOpen(false)
       }

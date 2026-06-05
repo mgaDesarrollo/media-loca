@@ -229,6 +229,35 @@ export async function getOrders(): Promise<Order[]> {
   return rows as Order[]
 }
 
+export async function getOrderById(orderId: string): Promise<Order | null> {
+  const rows = await sql`
+    SELECT o.*, 
+           json_agg(
+             json_build_object(
+               'id', oi.id,
+               'order_id', oi.order_id,
+               'product_id', oi.product_id,
+               'quantity', oi.quantity,
+               'unit_price', oi.unit_price,
+               'subtotal', oi.subtotal,
+               'created_at', oi.created_at,
+               'products', json_build_object(
+                 'id', p.id,
+                 'name', p.name,
+                 'price', p.price,
+                 'image_url', p.image_url
+               )
+             )
+           ) as order_items
+    FROM orders o
+    LEFT JOIN order_items oi ON o.id = oi.order_id
+    LEFT JOIN products p ON oi.product_id = p.id
+    WHERE o.id = ${orderId}
+    GROUP BY o.id
+  `
+  return (rows[0] as Order | undefined) ?? null
+}
+
 export async function confirmOrder(orderId: string) {
   const session = await requireAuth()
   const pool = getPool()
@@ -497,4 +526,11 @@ export async function upsertProfileConfig(
 
   revalidateAdmin()
   return { success: true }
+}
+
+export async function getProfileConfigPublic(): Promise<ProfileConfig | null> {
+  const rows = await sql`
+    SELECT * FROM profile_config ORDER BY created_at ASC LIMIT 1
+  `
+  return (rows[0] as ProfileConfig | undefined) ?? null
 }
