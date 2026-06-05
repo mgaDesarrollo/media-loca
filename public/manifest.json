@@ -1,0 +1,24 @@
+{
+  "name": "Media Loca - Medias con Personalidad",
+  "short_name": "Media Loca",
+  "description": "Descubre nuestra colección de medias únicas y divertidas. Calidad, estilo y comodidad en cada par.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8B4D9",
+  "theme_color": "#F8B4D9",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/apple-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logomedialoca.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

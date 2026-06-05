@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   title: 'Media Loca - Medias con Personalidad',
   description: 'Descubre nuestra coleccion de medias unicas y divertidas. Calidad, estilo y comodidad en cada par.',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Media Loca',
+  },
   icons: {
     icon: [
       {
