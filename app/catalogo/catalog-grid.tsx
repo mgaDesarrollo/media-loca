@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { MessageCircle, X, TrendingUp } from 'lucide-react'
 import type { Product, Category, PromotionTier } from '@/lib/types'
-import { getPromotionTiers } from '@/lib/db/queries'
 
 interface CatalogGridProps {
   products: Product[]
@@ -28,7 +27,16 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
   const [promotionTiers, setPromotionTiers] = useState<PromotionTier[]>([])
 
   useEffect(() => {
-    getPromotionTiers().then(setPromotionTiers)
+    const fetchPromotions = async () => {
+      try {
+        const response = await fetch('/api/promotions')
+        const data = await response.json()
+        setPromotionTiers(data)
+      } catch (error) {
+        console.error('Error fetching promotions:', error)
+      }
+    }
+    fetchPromotions()
   }, [])
 
   const filteredProducts = products.filter((product) => {
