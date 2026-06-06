@@ -26,6 +26,7 @@ interface AdminSidebarProps {
 }
 
 const navItems = [
+  { href: '/', label: 'Ver tienda', icon: Home },
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/productos', label: 'Productos', icon: Package },
   { href: '/admin/categorias', label: 'Categorías', icon: Tag },
@@ -83,13 +84,6 @@ export function AdminSidebar({ userEmail }: AdminSidebarProps) {
       </nav>
 
       <div className="mt-auto space-y-2 border-t border-border pt-4">
-        <Link
-          href="/"
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <Home className="h-4 w-4" />
-          Ver tienda
-        </Link>
         <div className="px-3 py-2">
           <p className="truncate text-xs text-muted-foreground">{userEmail}</p>
         </div>

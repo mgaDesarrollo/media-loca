@@ -223,7 +223,7 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
                     onClick={() => setIsPackMode(!isPackMode)}
                     className="w-full sm:w-auto"
                   >
-                    {isPackMode ? "Pack Activado" : "Activar Pack"}
+                    {isPackMode ? "Precio personalizado activado" : "Establecer precio personalizado"}
                   </Button>
                 </div>
 
