@@ -37,7 +37,7 @@ export default async function HomePage() {
                 <span className="text-primary">felices</span>
               </h1>
               <p className="mx-auto mb-4 max-w-2xl text-pretty text-sm text-muted-foreground md:text-base">
-                Descubre nuestra coleccion de medias unicas, divertidas y super comodas.
+                Descubre nuestra colección de medias únicas, divertidas y super cómodas.
                 Porque cada paso cuenta, hazlo con estilo.
               </p>
             </div>
@@ -91,7 +91,7 @@ export default async function HomePage() {
                 Compartilo con tus amigos
               </h2>
               <p className="mb-4 text-sm text-primary-foreground/80">
-                Envia nuestro catálogo por WhatsApp y ayudanos a crecer.
+                Envía nuestro catálogo por WhatsApp y ayúdanos a crecer.
                 Tus amigos te lo van a agradecer.
               </p>
               <Button size="lg" variant="secondary" className="gap-2" asChild>
