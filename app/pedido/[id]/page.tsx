@@ -10,10 +10,13 @@ import { Package, Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
+  console.log('Buscando pedido con ID:', params.id)
   const order = await getOrderById(params.id)
+  console.log('Pedido encontrado:', order)
   const profile = await getProfileConfig()
 
   if (!order) {
+    console.error('Pedido no encontrado con ID:', params.id)
     notFound()
   }
 
