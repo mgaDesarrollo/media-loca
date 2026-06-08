@@ -21,13 +21,15 @@ interface ShoppingCartProps {
   onClearCart: () => void
 }
 
-export function ShoppingCart({ 
-  items, 
-  onUpdateQuantity, 
-  onRemoveItem, 
-  onClearCart 
+export function ShoppingCart({
+  items,
+  onUpdateQuantity,
+  onRemoveItem,
+  onClearCart
 }: ShoppingCartProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [customerName, setCustomerName] = useState('')
+  const [deliveryPreference, setDeliveryPreference] = useState<'envio' | 'retiro' | ''>('')
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -73,60 +75,39 @@ export function ShoppingCart({
     }
 
     try {
-      const { createOrder, getProfileConfigPublic } = await import('@/lib/actions/admin')
-      
-      const orderItems = items.map(item => ({
-        product_id: item.product.id,
-        quantity: item.quantity,
-        unit_price: promotion.pricePerPair > 0 ? promotion.pricePerPair : item.product.price,
-        subtotal: (promotion.pricePerPair > 0 ? promotion.pricePerPair : item.product.price) * item.quantity,
-      }))
+      const { getProfileConfigPublic } = await import('@/lib/actions/admin')
+      const profile = await getProfileConfigPublic()
+      const whatsappNumber = profile?.whatsapp || ''
 
-      const result = await createOrder({
-        customer_name: null,
-        customer_email: null,
-        customer_phone: null,
-        total: getTotalPrice(),
-        notes: `Pedido desde web - ${getTotalItems()} pares`,
-        items: orderItems,
-      })
+      const cartItems = items.map(item =>
+        `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
+      ).join('\n')
 
-      console.log('Resultado de createOrder:', result)
+      const promotionText = promotion.savings > 0
+        ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
+        : ''
 
-      if (result.success) {
-        const profile = await getProfileConfigPublic()
-        const whatsappNumber = profile?.whatsapp || ''
+      const customerInfo = customerName || deliveryPreference
+        ? `\n\n📝 Datos del cliente:\n${customerName ? `Nombre: ${customerName}\n` : ''}${deliveryPreference ? `Prefiere: ${deliveryPreference === 'envio' ? 'Envío' : 'Retiro'}\n` : ''}`
+        : ''
 
-        const cartItems = items.map(item =>
-          `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
-        ).join('\n')
+      const message = encodeURIComponent(
+        `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
+        `${cartItems}\n\n` +
+        `Total: ${formatPrice(getTotalPrice())}${promotionText}` +
+        `${customerInfo}\n\n` +
+        `¿Podrían confirmarme disponibilidad y formas de pago?`
+      )
 
-        const promotionText = promotion.savings > 0
-          ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
-          : ''
+      const whatsappUrl = whatsappNumber
+        ? `https://wa.me/${whatsappNumber}?text=${message}`
+        : `https://wa.me/?text=${message}`
 
-        const orderUrl = `${window.location.origin}/pedido/${result.orderId}`
-        console.log('URL del pedido generada:', orderUrl)
-        
-        const message = encodeURIComponent(
-          `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
-          `${cartItems}\n\n` +
-          `Total: ${formatPrice(getTotalPrice())}${promotionText}\n\n` +
-          `📋 Ver pedido: ${orderUrl}\n` +
-          `Número de pedido: #${result.orderId.slice(0, 8)}\n\n` +
-          `¿Podrían confirmarme disponibilidad y formas de pago?`
-        )
-
-        const whatsappUrl = whatsappNumber 
-          ? `https://wa.me/${whatsappNumber}?text=${message}`
-          : `https://wa.me/?text=${message}`
-        
-        window.open(whatsappUrl, '_blank')
-        onClearCart()
-        setIsOpen(false)
-      }
+      window.open(whatsappUrl, '_blank')
+      onClearCart()
+      setIsOpen(false)
     } catch {
-      alert('Error al crear el pedido. Por favor intenta nuevamente.')
+      alert('Error al procesar el pedido. Por favor intenta nuevamente.')
     }
   }
 
@@ -326,7 +307,39 @@ export function ShoppingCart({
             {/* Resumen y checkout */}
             <Card>
               <CardContent className="p-4">
-                <div className="space-y-3">
+                <div className="space-y-4">
+                  {/* Formulario opcional de datos del cliente */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium">Datos del cliente (opcional)</p>
+                    <input
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={customerName}
+                      onChange={(e) => setCustomerName(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryPreference('envio')}
+                        className={`flex-1 px-3 py-2 border rounded-md text-sm ${
+                          deliveryPreference === 'envio' ? 'bg-primary text-primary-foreground' : 'bg-background'
+                        }`}
+                      >
+                        Envío
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeliveryPreference('retiro')}
+                        className={`flex-1 px-3 py-2 border rounded-md text-sm ${
+                          deliveryPreference === 'retiro' ? 'bg-primary text-primary-foreground' : 'bg-background'
+                        }`}
+                      >
+                        Retiro
+                      </button>
+                    </div>
+                  </div>
+
                   {promotion.savings > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-muted-foreground line-through">
@@ -337,7 +350,7 @@ export function ShoppingCart({
                       </span>
                     </div>
                   )}
-                  
+
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total:</span>
                     <div className="text-right">
@@ -351,7 +364,7 @@ export function ShoppingCart({
                       </span>
                     </div>
                   </div>
-                  
+
                   <Button
                     onClick={handleCheckout}
                     className="w-full gap-2"
@@ -359,9 +372,9 @@ export function ShoppingCart({
                     disabled={!validateStock()}
                   >
                     <MessageCircle className="h-4 w-4" />
-                    Enviar pedido por WhatsApp
+                    Finalizar pedido por WhatsApp
                   </Button>
-                  
+
                   <p className="text-xs text-muted-foreground text-center">
                     Te enviaremos un mensaje con tu pedido para confirmar
                   </p>
