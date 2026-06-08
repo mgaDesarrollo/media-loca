@@ -75,37 +75,59 @@ export function ShoppingCart({
     }
 
     try {
-      const { getProfileConfigPublic } = await import('@/lib/actions/admin')
-      const profile = await getProfileConfigPublic()
-      const whatsappNumber = profile?.whatsapp || ''
+      const { createOrder, getProfileConfigPublic } = await import('@/lib/actions/admin')
 
-      const cartItems = items.map(item =>
-        `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
-      ).join('\n')
+      const orderItems = items.map(item => ({
+        product_id: item.product.id,
+        quantity: item.quantity,
+        unit_price: promotion.pricePerPair > 0 ? promotion.pricePerPair : item.product.price,
+        subtotal: (promotion.pricePerPair > 0 ? promotion.pricePerPair : item.product.price) * item.quantity,
+      }))
 
-      const promotionText = promotion.savings > 0
-        ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
-        : ''
+      const result = await createOrder({
+        customer_name: customerName || null,
+        customer_email: null,
+        customer_phone: null,
+        total: getTotalPrice(),
+        notes: `Pedido desde web - ${getTotalItems()} pares - ${deliveryPreference === 'envio' ? 'Envío' : deliveryPreference === 'retiro' ? 'Retiro' : 'Sin especificar'}`,
+        items: orderItems,
+      })
 
-      const customerInfo = customerName || deliveryPreference
-        ? `\n\n📝 Datos del cliente:\n${customerName ? `Nombre: ${customerName}\n` : ''}${deliveryPreference ? `Prefiere: ${deliveryPreference === 'envio' ? 'Envío' : 'Retiro'}\n` : ''}`
-        : ''
+      console.log('Resultado de createOrder:', result)
 
-      const message = encodeURIComponent(
-        `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
-        `${cartItems}\n\n` +
-        `Total: ${formatPrice(getTotalPrice())}${promotionText}` +
-        `${customerInfo}\n\n` +
-        `¿Podrían confirmarme disponibilidad y formas de pago?`
-      )
+      if (result.success) {
+        const profile = await getProfileConfigPublic()
+        const whatsappNumber = profile?.whatsapp || ''
 
-      const whatsappUrl = whatsappNumber
-        ? `https://wa.me/${whatsappNumber}?text=${message}`
-        : `https://wa.me/?text=${message}`
+        const cartItems = items.map(item =>
+          `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
+        ).join('\n')
 
-      window.open(whatsappUrl, '_blank')
-      onClearCart()
-      setIsOpen(false)
+        const promotionText = promotion.savings > 0
+          ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
+          : ''
+
+        const customerInfo = customerName || deliveryPreference
+          ? `\n\n📝 Datos del cliente:\n${customerName ? `Nombre: ${customerName}\n` : ''}${deliveryPreference ? `Prefiere: ${deliveryPreference === 'envio' ? 'Envío' : 'Retiro'}\n` : ''}`
+          : ''
+
+        const message = encodeURIComponent(
+          `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
+          `${cartItems}\n\n` +
+          `Total: ${formatPrice(getTotalPrice())}${promotionText}` +
+          `${customerInfo}\n\n` +
+          `📋 Número de pedido: #${result.orderId.slice(0, 8)}\n\n` +
+          `¿Podrían confirmarme disponibilidad y formas de pago?`
+        )
+
+        const whatsappUrl = whatsappNumber
+          ? `https://wa.me/${whatsappNumber}?text=${message}`
+          : `https://wa.me/?text=${message}`
+
+        window.open(whatsappUrl, '_blank')
+        onClearCart()
+        setIsOpen(false)
+      }
     } catch {
       alert('Error al procesar el pedido. Por favor intenta nuevamente.')
     }
