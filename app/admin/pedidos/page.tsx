@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
-import { CheckCircle, XCircle, ArrowLeft, Package } from 'lucide-react'
+import { CheckCircle, XCircle, ArrowLeft, Package, MessageCircle, Edit } from 'lucide-react'
 import { getOrders, confirmOrder, cancelOrder } from '@/lib/actions/admin'
 import type { Order } from '@/lib/types'
 
@@ -175,6 +175,22 @@ export default function PedidosPage() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
+                              {order.customer_phone && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const message = encodeURIComponent(
+                                      `Hola, te escribo sobre tu pedido #${order.id.slice(0, 8)} por un total de ${formatPrice(order.total)}.`
+                                    )
+                                    window.open(`https://wa.me/${order.customer_phone}?text=${message}`, '_blank')
+                                  }}
+                                  className="gap-1"
+                                >
+                                  <MessageCircle className="h-4 w-4" />
+                                  WhatsApp
+                                </Button>
+                              )}
                               {order.status === 'pending' && (
                                 <>
                                   <Button
@@ -204,6 +220,15 @@ export default function PedidosPage() {
                                       <XCircle className="h-4 w-4" />
                                     )}
                                     Cancelar
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => router.push(`/admin/pedidos/${order.id}/edit`)}
+                                    className="gap-1"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                    Editar
                                   </Button>
                                 </>
                               )}

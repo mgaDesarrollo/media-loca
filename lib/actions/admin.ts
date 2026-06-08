@@ -355,6 +355,20 @@ export async function cancelOrder(orderId: string) {
   return { success: true }
 }
 
+export async function deleteOrder(orderId: string) {
+  await requireAuth()
+
+  await sql`
+    DELETE FROM order_items WHERE order_id = ${orderId}
+  `
+  await sql`
+    DELETE FROM orders WHERE id = ${orderId}
+  `
+
+  revalidateAdmin()
+  return { success: true }
+}
+
 export async function deleteProduct(id: string) {
   await requireAuth()
   await sql`DELETE FROM products WHERE id = ${id}`

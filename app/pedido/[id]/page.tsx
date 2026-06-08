@@ -155,6 +155,27 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 </Button>
               )}
 
+              {order.status === 'pending' && (
+                <Button
+                  variant="destructive"
+                  className="w-full gap-2"
+                  onClick={() => {
+                    if (confirm('¿Estás seguro de que quieres eliminar este pedido? Esta acción no se puede deshacer.')) {
+                      fetch(`/api/orders/${order.id}`, { method: 'DELETE' })
+                        .then(() => {
+                          alert('Pedido eliminado correctamente')
+                          window.location.href = '/'
+                        })
+                        .catch(() => {
+                          alert('Error al eliminar el pedido')
+                        })
+                    }
+                  }}
+                >
+                  Eliminar pedido
+                </Button>
+              )}
+
               {order.status === 'confirmed' && (
                 <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
                   <p className="text-sm font-medium text-green-700 dark:text-green-300">
