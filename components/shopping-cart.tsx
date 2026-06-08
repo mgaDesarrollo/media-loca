@@ -91,10 +91,12 @@ export function ShoppingCart({
         items: orderItems,
       })
 
+      console.log('Resultado de createOrder:', result)
+
       if (result.success) {
         const profile = await getProfileConfigPublic()
         const whatsappNumber = profile?.whatsapp || ''
-        
+
         const cartItems = items.map(item =>
           `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
         ).join('\n')
@@ -104,6 +106,7 @@ export function ShoppingCart({
           : ''
 
         const orderUrl = `${window.location.origin}/pedido/${result.orderId}`
+        console.log('URL del pedido generada:', orderUrl)
         
         const message = encodeURIComponent(
           `¡Hola! Quiero realizar un pedido de Media Loca:\n\n` +
