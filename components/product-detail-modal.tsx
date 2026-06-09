@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
-  FaShare, 
   FaPlus, 
   FaMinus, 
   FaShoppingCart, 
@@ -54,13 +53,6 @@ export function ProductDetailModal({
     }
   }
 
-  const handleShare = () => {
-    if (!product) return
-    const message = encodeURIComponent(
-      `¡Mira estas medias de Media Loca!\n\n${product.name}\n${product.description || ''}\nPrecio: ${formatPrice(product.price)}\n\nVe el catálogo completo en: ${window.location.origin}/catalogo`
-    )
-    window.open(`https://wa.me/?text=${message}`, '_blank')
-  }
 
   const handleQuantityChange = (change: number) => {
     const newQuantity = quantity + change
@@ -208,15 +200,6 @@ export function ProductDetailModal({
                 >
                   <FaShoppingCart className="h-5 w-5" />
                   {product.stock === 0 ? 'NOTIFICAR CUANDO VUELVA' : 'SUMAR AL CARRITO'}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={handleShare}
-                  className="h-14 rounded-[20px] gap-3 border-2 font-bold hover:bg-background hover:text-green-600 hover:border-green-500/50 transition-all text-muted-foreground"
-                >
-                  <FaShare className="h-4 w-4" />
-                  COMPARTIR POR WHATSAPP
                 </Button>
               </div>
 

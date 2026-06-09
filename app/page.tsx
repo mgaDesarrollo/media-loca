@@ -5,7 +5,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { auth } from '@/auth'
 import { getActiveCategories, getProductsWithCategories } from '@/lib/db/queries'
-import { FaHeart, FaTruck, FaGem, FaShare } from 'react-icons/fa'
+import { FaHeart, FaTruck, FaGem } from 'react-icons/fa'
 import { CatalogGrid } from '@/app/catalogo/catalog-grid'
 
 export default async function HomePage() {
@@ -84,29 +84,6 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="px-4 py-16">
-          <div className="container mx-auto">
-            <div className="mx-auto max-w-2xl rounded-2xl bg-primary p-6 text-center text-primary-foreground md:p-10">
-              <h2 className="mb-3 text-xl font-bold md:text-2xl font-simply-olive">
-                Compartilo con tus amigos
-              </h2>
-              <p className="mb-4 text-sm text-primary-foreground/80">
-                Envía nuestro catálogo por WhatsApp y ayúdanos a crecer.
-                Tus amigos te lo van a agradecer.
-              </p>
-              <Button size="lg" variant="secondary" className="gap-2" asChild>
-                <a
-                  href="https://wa.me/?text=Mira%20estas%20medias%20increibles%20de%20Media%20Loca!%20%F0%9F%A7%A6%E2%9C%A8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <FaShare className="h-4 w-4" />
-                  Compartir Catálogo
-                </a>
-              </Button>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />

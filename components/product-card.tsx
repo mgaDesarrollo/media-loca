@@ -4,16 +4,14 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Share2 } from 'lucide-react'
 import type { Product } from '@/lib/types'
 
 interface ProductCardProps {
   product: Product
-  onShare?: (product: Product) => void
   onClick?: () => void
 }
 
-export function ProductCard({ product, onShare, onClick }: ProductCardProps) {
+export function ProductCard({ product, onClick }: ProductCardProps) {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -22,16 +20,6 @@ export function ProductCard({ product, onShare, onClick }: ProductCardProps) {
     }).format(price)
   }
 
-  const handleShare = () => {
-    if (onShare) {
-      onShare(product)
-    } else {
-      const message = encodeURIComponent(
-        `Mira estas medias de Media Loca!\n\n${product.name}\n${product.description || ''}\nPrecio: ${formatPrice(product.price)}\n\nVe el catalogo completo en: ${window.location.origin}/catalogo`
-      )
-      window.open(`https://wa.me/?text=${message}`, '_blank')
-    }
-  }
 
   return (
     <Card 
@@ -108,18 +96,6 @@ export function ProductCard({ product, onShare, onClick }: ProductCardProps) {
               {formatPrice(product.price)}
             </span>
           </div>
-          
-          <Button
-            size="icon"
-            variant="ghost"
-            className="rounded-full bg-primary/5 hover:bg-primary/20 text-primary transition-all duration-300 transform group-hover:rotate-12"
-            onClick={(e) => {
-              e.stopPropagation()
-              handleShare()
-            }}
-          >
-            <Share2 className="h-4 w-4" />
-          </Button>
         </div>
       </CardContent>
     </Card>
