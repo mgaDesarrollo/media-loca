@@ -137,6 +137,9 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
           <p className="mb-4 text-xs font-light text-primary-foreground/80 sm:text-sm">
             Diseños únicos que reflejan tu personalidad. Calidad premium en cada paso.
           </p>
+          <p className="mb-4 text-xs font-light text-primary-foreground/80 sm:text-sm">
+            SITIO EN CONSTRUCCIÓN, ALGUNAS FUNCIONES PUEDEN NO ESTAR DISPONIBLES.
+          </p>
 
           {/* Promociones por cantidad - Responsivo */}
           {promotionTiers.length > 0 && (
@@ -146,21 +149,10 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
                   .filter(tier => tier.is_active)
                   .sort((a, b) => a.min_pairs - b.min_pairs)
                   .map((tier) => (
-                    <Badge
-                      key={tier.id}
-                      className="bg-white/20 text-white border-none backdrop-blur-md px-3 py-1 text-[10px] sm:text-xs"
-                    >
-                      {tier.min_pairs}+ pares: {formatPrice(tier.price_per_pair)}/u
-                    </Badge>
+                   
                   ))}
               </div>
-              <Button
-                onClick={shareFullCatalog}
-                className="h-8 rounded-xl bg-black text-white px-4 font-bold shadow-xl transition-all hover:bg-black/90 hover:scale-105 active:scale-95 gap-2 text-[10px] sm:text-xs"
-              >
-                <MessageCircle className="h-3 w-3" />
-                Compartir
-              </Button>
+             
             </div>
           )}
         </div>

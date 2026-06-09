@@ -37,8 +37,22 @@ export default function PedidosPage() {
   const handleConfirmOrder = async (orderId: string) => {
     setActionLoading(orderId)
     try {
-      await confirmOrder(orderId)
+      const paymentMethod = prompt('Forma de pago (cash, transfer, etc):', 'cash') || 'cash'
+      await confirmOrder(orderId, paymentMethod)
       toast.success('Pedido confirmado y venta registrada')
+
+      // Preguntar si quiere enviar mensaje automático al cliente
+      const order = orders.find(o => o.id === orderId)
+      if (order?.customer_phone) {
+        const sendMessage = confirm('¿Quieres enviar un mensaje automático al cliente?')
+        if (sendMessage) {
+          const message = encodeURIComponent(
+            `¡Hola ${order.customer_name || ''}! Tu pedido #${orderId.slice(0, 8)} ha sido confirmado exitosamente. Gracias por tu compra.`
+          )
+          window.open(`https://wa.me/${order.customer_phone}?text=${message}`, '_blank')
+        }
+      }
+
       await loadOrders()
     } catch (error: any) {
       toast.error(error.message || 'Error al confirmar el pedido')

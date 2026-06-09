@@ -15,7 +15,6 @@ Tachá el precio original: Cuando el cliente llegue al umbral de un combo (por e
 
 Alerta de Stock Disponible: Como varios de tus modelos tienen stock muy limitado (unidades de 1 o 2 pares), asegurate de que si el usuario quiere armar el pack de 12, la app valide dinámicamente que haya 12 unidades físicas en total en toda la tienda antes de dejarlo avanzar, o que le avise qué modelos específicos se van quedando sin stock mientras los agrega.
 
-necesito convertir mi app en una app web progresiva (PWA)
 
 agregar acceso a pedidos sidebar y dashboard, agregar notificacion de nuevo pedido
 

@@ -258,7 +258,7 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
   return (rows[0] as Order | undefined) ?? null
 }
 
-export async function confirmOrder(orderId: string) {
+export async function confirmOrder(orderId: string, paymentMethod: string = 'cash') {
   const session = await requireAuth()
   const pool = getPool()
   const client = await pool.connect()
@@ -301,8 +301,8 @@ export async function confirmOrder(orderId: string) {
     // Create sale
     const saleResult = await client.query<{ id: string }>(
       `INSERT INTO sales (user_id, total, notes, payment_method, is_test)
-       VALUES ($1, $2, $3, 'cash', false) RETURNING id`,
-      [session.user.id, order.total, order.notes]
+       VALUES ($1, $2, $3, $4, false) RETURNING id`,
+      [session.user.id, order.total, order.notes, paymentMethod]
     )
     const saleId = saleResult.rows[0].id
 
@@ -327,10 +327,10 @@ export async function confirmOrder(orderId: string) {
       [session.user.id, order.total, `Pedido #${orderId.slice(0, 8)}`, saleId]
     )
 
-    // Update order status
+    // Update order status and payment method
     await client.query(
-      `UPDATE orders SET status = 'confirmed', updated_at = NOW() WHERE id = $1`,
-      [orderId]
+      `UPDATE orders SET status = 'confirmed', payment_method = $2, updated_at = NOW() WHERE id = $1`,
+      [orderId, paymentMethod]
     )
 
     await client.query('COMMIT')
