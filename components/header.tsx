@@ -31,10 +31,6 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
         </div>
 
         <nav className="flex items-center gap-2 sm:gap-4">
-          <Link href="/catalogo" className="text-sm font-medium hover:text-primary">
-            Catálogo
-          </Link>
-          
           <Button
             variant="outline"
             size="sm"

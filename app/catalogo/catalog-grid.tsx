@@ -142,19 +142,6 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
           </p>
 
           {/* Promociones por cantidad - Responsivo */}
-          {promotionTiers.length > 0 && (
-            <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {promotionTiers
-                  .filter(tier => tier.is_active)
-                  .sort((a, b) => a.min_pairs - b.min_pairs)
-                  .map((tier) => (
-                   
-                  ))}
-              </div>
-             
-            </div>
-          )}
         </div>
       </div>
 
