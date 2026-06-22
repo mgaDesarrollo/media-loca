@@ -157,3 +157,195 @@ export async function getPromotionTiers(): Promise<PromotionTier[]> {
   `
   return rows as PromotionTier[]
 }
+
+// Análisis de ventas
+export async function getTopSellingProducts(limit = 10) {
+  const rows = await sql`
+    SELECT 
+      p.name,
+      p.category_id,
+      c.name as category_name,
+      SUM(si.quantity) as total_quantity,
+      SUM(si.subtotal) as total_revenue,
+      COUNT(DISTINCT si.sale_id) as number_of_sales,
+      AVG(p.price) as avg_price
+    FROM sale_items si
+    JOIN products p ON si.product_id = p.id
+    LEFT JOIN categories c ON p.category_id = c.id
+    GROUP BY p.id, p.name, p.category_id, c.name
+    ORDER BY total_quantity DESC
+    LIMIT ${limit}
+  `
+  return rows
+}
+
+export async function getSalesByPeriod() {
+  const rows = await sql`
+    SELECT 
+      DATE_TRUNC('month', created_at) as month,
+      COUNT(*) as total_sales,
+      SUM(total) as total_revenue,
+      AVG(total) as avg_sale_value,
+      COUNT(DISTINCT user_id) as unique_sellers
+    FROM sales
+    WHERE is_test = false
+    GROUP BY DATE_TRUNC('month', created_at)
+    ORDER BY month DESC
+  `
+  return rows
+}
+
+export async function getSalesByCategory() {
+  const rows = await sql`
+    SELECT 
+      c.name as category_name,
+      COUNT(DISTINCT si.sale_id) as total_sales,
+      SUM(si.quantity) as total_items_sold,
+      SUM(si.subtotal) as total_revenue,
+      AVG(si.unit_price) as avg_price_per_item
+    FROM sale_items si
+    JOIN products p ON si.product_id = p.id
+    LEFT JOIN categories c ON p.category_id = c.id
+    GROUP BY c.id, c.name
+    ORDER BY total_revenue DESC
+  `
+  return rows
+}
+
+export async function getOrdersStats() {
+  const rows = await sql`
+    SELECT 
+      status,
+      COUNT(*) as total_orders,
+      SUM(total) as total_value,
+      AVG(total) as avg_order_value,
+      COUNT(DISTINCT customer_phone) as unique_customers
+    FROM orders
+    GROUP BY status
+    ORDER BY status
+  `
+  return rows
+}
+
+export async function getOrderQuantityDistribution() {
+  const rows = await sql`
+    SELECT 
+      quantity,
+      COUNT(*) as frequency,
+      SUM(quantity) as total_quantity,
+      AVG(quantity) as avg_quantity_per_order
+    FROM (
+      SELECT o.id, SUM(oi.quantity) as quantity
+      FROM orders o
+      JOIN order_items oi ON o.id = oi.order_id
+      GROUP BY o.id
+    ) order_quantities
+    GROUP BY quantity
+    ORDER BY quantity DESC
+  `
+  return rows
+}
+
+export async function getProductTurnover() {
+  const rows = await sql`
+    SELECT 
+      p.name,
+      p.stock,
+      COALESCE(SUM(si.quantity), 0) as total_sold,
+      p.price,
+      CASE 
+        WHEN p.stock > 0 THEN (COALESCE(SUM(si.quantity), 0)::float / p.stock)
+        ELSE 0 
+      END as turnover_ratio
+    FROM products p
+    LEFT JOIN sale_items si ON p.id = si.product_id
+    WHERE p.is_active = true
+    GROUP BY p.id, p.name, p.stock, p.price
+    ORDER BY turnover_ratio DESC
+  `
+  return rows
+}
+
+export async function getPromotionImpact() {
+  const rows = await sql`
+    SELECT 
+      CASE 
+        WHEN COUNT(DISTINCT si.sale_id) >= 12 THEN 'Pack 12+'
+        WHEN COUNT(DISTINCT si.sale_id) >= 6 THEN 'Pack 6-11'
+        WHEN COUNT(DISTINCT si.sale_id) >= 3 THEN 'Pack 3-5'
+        ELSE 'Precio normal'
+      END as promotion_tier,
+      COUNT(*) as sales_count,
+      SUM(total) as total_revenue,
+      AVG(total) as avg_sale_value
+    FROM sales s
+    JOIN sale_items si ON s.id = si.sale_id
+    WHERE s.is_test = false
+    GROUP BY promotion_tier
+    ORDER BY total_revenue DESC
+  `
+  return rows
+}
+
+export async function getRecurringCustomers() {
+  const rows = await sql`
+    SELECT 
+      customer_phone,
+      customer_name,
+      COUNT(*) as order_count,
+      SUM(total) as total_spent,
+      AVG(total) as avg_order_value,
+      MIN(created_at) as first_order,
+      MAX(created_at) as last_order
+    FROM orders
+    WHERE customer_phone IS NOT NULL
+    GROUP BY customer_phone, customer_name
+    HAVING COUNT(*) > 1
+    ORDER BY order_count DESC, total_spent DESC
+  `
+  return rows
+}
+
+export async function getSalesByDayOfWeek() {
+  const rows = await sql`
+    SELECT 
+      EXTRACT(DOW FROM created_at) as day_of_week,
+      CASE 
+        WHEN EXTRACT(DOW FROM created_at) = 0 THEN 'Domingo'
+        WHEN EXTRACT(DOW FROM created_at) = 1 THEN 'Lunes'
+        WHEN EXTRACT(DOW FROM created_at) = 2 THEN 'Martes'
+        WHEN EXTRACT(DOW FROM created_at) = 3 THEN 'Miércoles'
+        WHEN EXTRACT(DOW FROM created_at) = 4 THEN 'Jueves'
+        WHEN EXTRACT(DOW FROM created_at) = 5 THEN 'Viernes'
+        WHEN EXTRACT(DOW FROM created_at) = 6 THEN 'Sábado'
+      END as day_name,
+      COUNT(*) as sales_count,
+      SUM(total) as total_revenue,
+      AVG(total) as avg_sale_value
+    FROM sales
+    WHERE is_test = false
+    GROUP BY day_of_week, day_name
+    ORDER BY day_of_week
+  `
+  return rows
+}
+
+export async function getCriticalStockProducts() {
+  const rows = await sql`
+    SELECT 
+      p.name,
+      p.stock,
+      COALESCE(SUM(si.quantity), 0) as sold_last_30_days,
+      p.price,
+      c.name as category
+    FROM products p
+    LEFT JOIN sale_items si ON p.id = si.product_id 
+      AND si.created_at >= NOW() - INTERVAL '30 days'
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.is_active = true
+      AND p.stock <= 5
+    GROUP BY p.id, p.name, p.stock, p.price, c.name
+    ORDER BY sold_last_30_days DESC
+  `
+  return rows
+}

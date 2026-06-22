@@ -17,6 +17,8 @@ import {
   TrendingUp,
   Tag,
   Settings,
+  BarChart3,
+  Target,
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -33,6 +35,8 @@ const navItems = [
   { href: '/admin/stock', label: 'Stock', icon: TrendingUp },
   { href: '/admin/ventas', label: 'Ventas', icon: ShoppingCart },
   { href: '/admin/caja', label: 'Caja', icon: Wallet },
+  { href: '/admin/analisis', label: 'Análisis', icon: BarChart3 },
+  { href: '/admin/plan-crecimiento', label: 'Plan Crecimiento', icon: Target },
   { href: '/admin/perfil', label: 'Perfil', icon: Settings },
 ]
 
