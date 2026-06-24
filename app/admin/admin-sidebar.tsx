@@ -19,6 +19,7 @@ import {
   Settings,
   BarChart3,
   Target,
+  CheckSquare,
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -37,6 +38,7 @@ const navItems = [
   { href: '/admin/caja', label: 'Caja', icon: Wallet },
   { href: '/admin/analisis', label: 'Análisis', icon: BarChart3 },
   { href: '/admin/plan-crecimiento', label: 'Plan Crecimiento', icon: Target },
+  { href: '/admin/tareas', label: 'Tareas', icon: CheckSquare },
   { href: '/admin/perfil', label: 'Perfil', icon: Settings },
 ]
 
