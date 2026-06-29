@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { 
@@ -66,6 +66,9 @@ export function ProductDetailModal({
       <DialogContent className="p-0 border-none bg-background sm:rounded-[32px] overflow-hidden max-w-[95vw] sm:max-w-[800px] gap-0 shadow-2xl">
         {/* Visually Hidden Title for Accessibility */}
         <DialogTitle className="sr-only">{product.name}</DialogTitle>
+        <DialogDescription className="sr-only">
+          Detalles del producto {product.name}
+        </DialogDescription>
         
         {/* Close Button - Responsive Position */}
         <Button

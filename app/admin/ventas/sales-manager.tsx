@@ -208,6 +208,9 @@ export function SalesManager({ initialSales, products }: SalesManagerProps) {
           <DialogContent className="max-h-[90vh] max-w-3xl sm:max-w-4xl overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Registrar Venta</DialogTitle>
+              <DialogDescription>
+                Registra una nueva venta de productos
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <div className="space-y-4 sm:space-y-6">

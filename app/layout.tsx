@@ -52,23 +52,6 @@ export default function RootLayout({
     <html lang="es" className="light">
       <head>
         <link href="https://fonts.googleapis.com/css2?family=Simply+Olive&display=swap" rel="stylesheet" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator && window.location.hostname !== 'localhost') {
-                window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then((registration) => {
-                      console.log('Service Worker registrado:', registration)
-                    })
-                    .catch((error) => {
-                      console.error('Error registrando Service Worker:', error)
-                    })
-                })
-              }
-            `,
-          }}
-        />
       </head>
       <body className={`${outfit.variable} ${spaceGrotesk.variable} font-sans antialiased`}>
         <AuthSessionProvider>{children}</AuthSessionProvider>

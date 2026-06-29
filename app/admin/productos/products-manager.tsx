@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
@@ -179,6 +179,9 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
               <DialogTitle>
                 {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
               </DialogTitle>
+              <DialogDescription>
+                {editingProduct ? 'Edita los detalles del producto existente' : 'Crea un nuevo producto para el catálogo'}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <FieldGroup>

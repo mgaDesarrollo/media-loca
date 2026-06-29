@@ -6,7 +6,7 @@ import { createCashEntry } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
@@ -161,6 +161,9 @@ export function CashManager({ initialEntries }: CashManagerProps) {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Registrar Movimiento</DialogTitle>
+              <DialogDescription>
+                Registra un nuevo movimiento de caja (ingreso o egreso)
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <FieldGroup>

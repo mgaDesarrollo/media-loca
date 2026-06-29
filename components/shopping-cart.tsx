@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { ShoppingCart as ShoppingCartIcon, X, Plus, Minus, MessageCircle, Trash2, TrendingUp, AlertCircle } from 'lucide-react'
 import type { Product } from '@/lib/types'
 import { calculatePromotion, getNextDiscountMessage, formatPrice as formatPromotionPrice } from '@/lib/promotions'
@@ -165,6 +165,9 @@ export function ShoppingCart({
               </Button>
             )}
           </DialogTitle>
+          <DialogDescription>
+            Gestiona los productos de tu carrito y finaliza tu pedido
+          </DialogDescription>
         </DialogHeader>
 
         {items.length === 0 ? (

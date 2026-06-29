@@ -249,6 +249,9 @@ export function StockManager({ products }: StockManagerProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ajustar Stock</DialogTitle>
+            <DialogDescription>
+              Ajusta la cantidad de stock del producto seleccionado
+            </DialogDescription>
           </DialogHeader>
           {editingStock && (
             <div className="space-y-4">

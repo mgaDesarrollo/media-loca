@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@/components/ui/spinner'
@@ -122,6 +122,9 @@ export function CategoriesManager({ initialCategories }: CategoriesManagerProps)
               <DialogTitle>
                 {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
               </DialogTitle>
+              <DialogDescription>
+                {editingCategory ? 'Edita los detalles de la categoría existente' : 'Crea una nueva categoría para organizar productos'}
+              </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit}>
               <FieldGroup>
