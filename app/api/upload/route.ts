@@ -19,16 +19,25 @@ export async function POST(request: Request) {
   const ext = file.name.split('.').pop() ?? 'jpg'
   const fileName = `${Date.now()}.${ext}`
 
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
+  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN
+  console.log(`[upload] hasBlobToken=${hasBlobToken}, fileName=${fileName}, fileSize=${file.size}`)
+
+  if (hasBlobToken) {
     try {
       const blob = await put(`products/${fileName}`, file, { access: 'public' })
+      console.log(`[upload] Success: ${blob.url}`)
       return Response.json({ url: blob.url })
     } catch (error) {
-      console.error('Error uploading to Vercel Blob:', error)
-      return Response.json({ error: 'Error al subir imagen a Vercel Blob' }, { status: 500 })
+      const errMsg = error instanceof Error ? error.message : String(error)
+      console.error('[upload] Error uploading to Vercel Blob:', errMsg)
+      return Response.json({ 
+        error: `Error al subir imagen a Vercel Blob: ${errMsg}` 
+      }, { status: 500 })
     }
   }
 
+  // Fallback: filesystem local (solo funciona en development)
+  console.warn('[upload] BLOB_READ_WRITE_TOKEN no configurado, intentando filesystem local')
   try {
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
     await mkdir(uploadsDir, { recursive: true })
@@ -36,9 +45,11 @@ export async function POST(request: Request) {
     await writeFile(path.join(uploadsDir, fileName), buffer)
     return Response.json({ url: `/uploads/${fileName}` })
   } catch (error) {
-    console.error('Error saving to local filesystem:', error)
+    const errMsg = error instanceof Error ? error.message : String(error)
+    console.error('[upload] Error saving to local filesystem:', errMsg)
     return Response.json({ 
-      error: 'No se puede guardar la imagen. Configura Vercel Blob Storage para producción.',
+      error: 'BLOB_READ_WRITE_TOKEN no está configurado en Vercel. Configurá la variable de entorno en el dashboard de Vercel.',
+      detail: errMsg,
       needsBlobStorage: true
     }, { status: 500 })
   }

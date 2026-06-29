@@ -91,7 +91,8 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
       const uploadResponse = await fetch('/api/upload', { method: 'POST', body: uploadForm })
 
       if (!uploadResponse.ok) {
-        toast.error('Error al subir imagen')
+        const errData = await uploadResponse.json().catch(() => ({ error: 'Error desconocido' }))
+        toast.error(`Error al subir imagen: ${errData.error || 'Error desconocido'}`)
         setLoading(false)
         return
       }
