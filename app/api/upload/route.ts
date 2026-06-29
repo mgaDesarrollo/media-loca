@@ -1,12 +1,19 @@
 import { put } from '@vercel/blob'
-import { mkdir, writeFile } from 'fs/promises'
-import path from 'path'
 import { auth } from '@/auth'
 
 export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user) {
     return Response.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
+  // Verificar token antes de continuar
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.error('[upload] BLOB_READ_WRITE_TOKEN no configurado en el entorno')
+    return Response.json({
+      error: 'El servidor no está configurado para subir imágenes. Configurá la variable BLOB_READ_WRITE_TOKEN en el dashboard de Vercel y redesplegá el proyecto.',
+      needsBlobStorage: true
+    }, { status: 503 })
   }
 
   const formData = await request.formData()
@@ -19,38 +26,17 @@ export async function POST(request: Request) {
   const ext = file.name.split('.').pop() ?? 'jpg'
   const fileName = `${Date.now()}.${ext}`
 
-  const hasBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN
-  console.log(`[upload] hasBlobToken=${hasBlobToken}, fileName=${fileName}, fileSize=${file.size}`)
+  console.log(`[upload] Subiendo archivo: ${fileName}, tamaño: ${file.size} bytes`)
 
-  if (hasBlobToken) {
-    try {
-      const blob = await put(`products/${fileName}`, file, { access: 'public' })
-      console.log(`[upload] Success: ${blob.url}`)
-      return Response.json({ url: blob.url })
-    } catch (error) {
-      const errMsg = error instanceof Error ? error.message : String(error)
-      console.error('[upload] Error uploading to Vercel Blob:', errMsg)
-      return Response.json({ 
-        error: `Error al subir imagen a Vercel Blob: ${errMsg}` 
-      }, { status: 500 })
-    }
-  }
-
-  // Fallback: filesystem local (solo funciona en development)
-  console.warn('[upload] BLOB_READ_WRITE_TOKEN no configurado, intentando filesystem local')
   try {
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadsDir, { recursive: true })
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await writeFile(path.join(uploadsDir, fileName), buffer)
-    return Response.json({ url: `/uploads/${fileName}` })
+    const blob = await put(`products/${fileName}`, file, { access: 'public' })
+    console.log(`[upload] ✓ Subido exitosamente: ${blob.url}`)
+    return Response.json({ url: blob.url })
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error)
-    console.error('[upload] Error saving to local filesystem:', errMsg)
-    return Response.json({ 
-      error: 'BLOB_READ_WRITE_TOKEN no está configurado en Vercel. Configurá la variable de entorno en el dashboard de Vercel.',
-      detail: errMsg,
-      needsBlobStorage: true
+    console.error('[upload] Error al subir a Vercel Blob:', errMsg)
+    return Response.json({
+      error: `Error al subir imagen: ${errMsg}`
     }, { status: 500 })
   }
 }
