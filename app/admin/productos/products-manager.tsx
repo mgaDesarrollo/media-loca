@@ -136,13 +136,12 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
 
     try {
       await deleteProduct(productId)
-    } catch {
-      toast.error('Error al eliminar producto')
-      return
+      setProducts(products.filter((p) => p.id !== productId))
+      toast.success('Producto eliminado')
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error(`Error al eliminar producto: ${msg}`)
     }
-
-    setProducts(products.filter((p) => p.id !== productId))
-    toast.success('Producto eliminado')
   }
 
   const formatPrice = (price: number) => {

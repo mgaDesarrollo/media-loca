@@ -13,7 +13,8 @@
     "test:sales": "npx tsx scripts/test-sales.ts",
     "migrate-images": "npx tsx scripts/migrate-images.ts",
     "check-image-urls": "npx tsx scripts/check-image-urls.ts",
-    "update-blob-urls": "npx tsx scripts/update-blob-urls.ts"
+    "update-blob-urls": "npx tsx scripts/update-blob-urls.ts",
+    "fix-order-fk": "npx tsx scripts/fix-order-items-fk.ts"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
