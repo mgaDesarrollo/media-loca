@@ -82,7 +82,17 @@ CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_sales_user_id ON sales(user_id);
 CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id);
-CREATE INDEX IF NOT EXISTS idx_cash_register_user_id ON cash_register(user_id);
+CREATE TABLE IF NOT EXISTS task_notes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  items JSONB NOT NULL DEFAULT '[]'::jsonb,
+  color TEXT NOT NULL DEFAULT 'default',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_task_notes_user_id ON task_notes(user_id);
 
 -- Datos iniciales (opcional en entornos nuevos)
 INSERT INTO profile_config (store_name, email, phone, whatsapp, address, description)

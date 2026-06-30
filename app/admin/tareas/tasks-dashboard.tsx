@@ -23,6 +23,7 @@ import {
   Clock,
   AlertCircle,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -56,52 +57,84 @@ export function TasksDashboard() {
   const [notes, setNotes] = useState<TaskNote[]>([])
   const [newNoteTitle, setNewNoteTitle] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Load notes from localStorage
+  // Load notes from DB
   useEffect(() => {
-    const saved = localStorage.getItem('admin-tasks-notes')
-    if (saved) {
+    const fetchNotes = async () => {
       try {
-        const parsed = JSON.parse(saved)
-        setNotes(parsed.map((note: any) => ({ ...note, isEditing: false })))
-      } catch (e) {
-        console.error('Error loading notes:', e)
+        const response = await fetch('/api/admin/tasks')
+        if (response.ok) {
+          const data = await response.json()
+          setNotes(data.map((note: any) => ({ ...note, isEditing: false })))
+        }
+      } catch (error) {
+        console.error('Error loading notes:', error)
+        toast.error('Error al cargar las tareas')
+      } finally {
+        setIsLoading(false)
       }
     }
+    fetchNotes()
   }, [])
 
-  // Save notes to localStorage
-  useEffect(() => {
-    if (notes.length > 0) {
-      const notesToSave = notes.map(({ isEditing, ...note }) => note)
-      localStorage.setItem('admin-tasks-notes', JSON.stringify(notesToSave))
+  const saveNoteOnBackend = async (updatedNote: TaskNote) => {
+    try {
+      const res = await fetch('/api/admin/tasks', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: updatedNote.id,
+          title: updatedNote.title,
+          items: updatedNote.items,
+          color: updatedNote.color,
+        }),
+      })
+      if (!res.ok) throw new Error()
+      const saved = await res.json()
+      setNotes(prev => prev.map(n => n.id === saved.id ? { ...saved, isEditing: n.isEditing } : n))
+    } catch (error) {
+      console.error('Error saving note:', error)
+      toast.error('Error al guardar cambios')
     }
-  }, [notes])
+  }
 
-  const createNote = () => {
+  const createNote = async () => {
     if (!newNoteTitle.trim()) {
       toast.error('Ingresa un título para la nota')
       return
     }
 
-    const newNote: TaskNote = {
-      id: Date.now().toString(),
-      title: newNoteTitle,
-      items: [],
-      color: 'default',
-      createdAt: new Date().toISOString(),
-      isEditing: false,
+    try {
+      const res = await fetch('/api/admin/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: newNoteTitle, color: 'default' }),
+      })
+      if (!res.ok) throw new Error()
+      const newNote = await res.json()
+      setNotes([...notes, { ...newNote, isEditing: false }])
+      setNewNoteTitle('')
+      setIsCreating(false)
+      toast.success('Nota creada')
+    } catch (error) {
+      console.error('Error creating note:', error)
+      toast.error('Error al crear la nota')
     }
-
-    setNotes([...notes, newNote])
-    setNewNoteTitle('')
-    setIsCreating(false)
-    toast.success('Nota creada')
   }
 
-  const deleteNote = (id: string) => {
-    setNotes(notes.filter(note => note.id !== id))
-    toast.success('Nota eliminada')
+  const deleteNote = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/tasks?id=${id}`, {
+        method: 'DELETE',
+      })
+      if (!res.ok) throw new Error()
+      setNotes(notes.filter(note => note.id !== id))
+      toast.success('Nota eliminada')
+    } catch (error) {
+      console.error('Error deleting note:', error)
+      toast.error('Error al eliminar la nota')
+    }
   }
 
   const updateNoteTitle = (id: string, newTitle: string) => {
@@ -111,13 +144,17 @@ export function TasksDashboard() {
   }
 
   const updateNoteColor = (id: string, newColor: string) => {
-    setNotes(notes.map(note => 
-      note.id === id ? { ...note, color: newColor } : note
-    ))
+    const noteToUpdate = notes.find(n => n.id === id)
+    if (!noteToUpdate) return
+    const updated = { ...noteToUpdate, color: newColor }
+    setNotes(notes.map(n => n.id === id ? updated : n))
+    saveNoteOnBackend(updated)
   }
 
   const addItem = (noteId: string, text: string) => {
     if (!text.trim()) return
+    const noteToUpdate = notes.find(n => n.id === noteId)
+    if (!noteToUpdate) return
 
     const newItem: TaskItem = {
       id: Date.now().toString(),
@@ -125,26 +162,23 @@ export function TasksDashboard() {
       completed: false,
     }
 
-    setNotes(notes.map(note =>
-      note.id === noteId
-        ? { ...note, items: [...note.items, newItem] }
-        : note
-    ))
+    const updated = { ...noteToUpdate, items: [...noteToUpdate.items, newItem] }
+    setNotes(notes.map(n => n.id === noteId ? updated : n))
+    saveNoteOnBackend(updated)
   }
 
   const toggleItem = (noteId: string, itemId: string) => {
-    setNotes(notes.map(note =>
-      note.id === noteId
-        ? {
-            ...note,
-            items: note.items.map(item =>
-              item.id === itemId
-                ? { ...item, completed: !item.completed }
-                : item
-            ),
-          }
-        : note
-    ))
+    const noteToUpdate = notes.find(n => n.id === noteId)
+    if (!noteToUpdate) return
+
+    const updated = {
+      ...noteToUpdate,
+      items: noteToUpdate.items.map(item =>
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      ),
+    }
+    setNotes(notes.map(n => n.id === noteId ? updated : n))
+    saveNoteOnBackend(updated)
   }
 
   const updateItemText = (noteId: string, itemId: string, newText: string) => {
@@ -153,9 +187,7 @@ export function TasksDashboard() {
         ? {
             ...note,
             items: note.items.map(item =>
-              item.id === itemId
-                ? { ...item, text: newText }
-                : item
+              item.id === itemId ? { ...item, text: newText } : item
             ),
           }
         : note
@@ -163,14 +195,15 @@ export function TasksDashboard() {
   }
 
   const deleteItem = (noteId: string, itemId: string) => {
-    setNotes(notes.map(note =>
-      note.id === noteId
-        ? {
-            ...note,
-            items: note.items.filter(item => item.id !== itemId),
-          }
-        : note
-    ))
+    const noteToUpdate = notes.find(n => n.id === noteId)
+    if (!noteToUpdate) return
+
+    const updated = {
+      ...noteToUpdate,
+      items: noteToUpdate.items.filter(item => item.id !== itemId),
+    }
+    setNotes(notes.map(n => n.id === noteId ? updated : n))
+    saveNoteOnBackend(updated)
   }
 
   const getCompletedCount = (note: TaskNote) => {
@@ -188,6 +221,15 @@ export function TasksDashboard() {
       bg: option?.bgClass || 'bg-card',
       border: option?.borderClass || 'border-border',
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
+        <p className="text-muted-foreground text-sm">Cargando tus tareas...</p>
+      </div>
+    )
   }
 
   return (
@@ -263,9 +305,16 @@ export function TasksDashboard() {
                       size="icon"
                       className="h-8 w-8"
                       onClick={() =>
-                        setNotes(notes.map(n =>
-                          n.id === note.id ? { ...n, isEditing: !n.isEditing } : n
-                        ))
+                        setNotes(notes.map(n => {
+                          if (n.id === note.id) {
+                            const nextEditing = !n.isEditing
+                            if (!nextEditing) {
+                              saveNoteOnBackend(n)
+                            }
+                            return { ...n, isEditing: nextEditing }
+                          }
+                          return n
+                        }))
                       }
                     >
                       {note.isEditing ? (

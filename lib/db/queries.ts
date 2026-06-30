@@ -349,3 +349,40 @@ export async function getCriticalStockProducts() {
   `
   return rows
 }
+
+// Task Notes Queries
+export async function getTaskNotes(userId: string) {
+  return sql`
+    SELECT * FROM task_notes
+    WHERE user_id = ${userId}
+    ORDER BY created_at ASC
+  `
+}
+
+export async function createTaskNote(userId: string, title: string, color = 'default') {
+  const result = await sql`
+    INSERT INTO task_notes (user_id, title, color, items)
+    VALUES (${userId}, ${title}, ${color}, ${JSON.stringify([])}::jsonb)
+    RETURNING *
+  `
+  return result[0]
+}
+
+export async function updateTaskNote(id: string, userId: string, title: string, items: any[], color: string) {
+  const result = await sql`
+    UPDATE task_notes
+    SET title = ${title}, items = ${JSON.stringify(items)}::jsonb, color = ${color}, updated_at = NOW()
+    WHERE id = ${id} AND user_id = ${userId}
+    RETURNING *
+  `
+  return result[0]
+}
+
+export async function deleteTaskNote(id: string, userId: string) {
+  const result = await sql`
+    DELETE FROM task_notes
+    WHERE id = ${id} AND user_id = ${userId}
+    RETURNING *
+  `
+  return result[0]
+}

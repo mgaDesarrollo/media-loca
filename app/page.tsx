@@ -5,7 +5,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { auth } from '@/auth'
 import { getActiveCategories, getProductsWithCategories } from '@/lib/db/queries'
-import { FaHeart, FaTruck, FaGem } from 'react-icons/fa'
+import { Sparkles, ShieldCheck, Truck } from 'lucide-react'
 import { CatalogGrid } from '@/app/catalogo/catalog-grid'
 
 export default async function HomePage() {
@@ -25,9 +25,9 @@ export default async function HomePage() {
               <Image
                 src="/logomedialoca.png"
                 alt="Media Loca Logo"
-                width={336}
-                height={336}
-                className="rounded-lg w-48 h-48 sm:w-64 sm:h-64 md:w-84 md:h-84 object-contain"
+                width={160}
+                height={160}
+                className="rounded-lg w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 object-contain"
               />
             </div>
 
@@ -53,31 +53,31 @@ export default async function HomePage() {
         <section className="border-y border-border/40 bg-muted/30 px-4 py-12">
           <div className="container mx-auto">
             <div className="grid gap-6 md:grid-cols-3">
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <FaGem className="h-5 w-5 text-primary" />
+              <div className="flex flex-col items-center text-center group transition-all duration-300 hover:scale-105">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary transition-transform duration-500 group-hover:rotate-12" />
                 </div>
-                <h3 className="mb-2 text-sm font-semibold">Diseños Únicos</h3>
-                <p className="text-xs text-muted-foreground">
-                  Cada par cuenta una historia. Medias que expresan tu personalidad.
+                <h3 className="mb-2 text-sm font-bold">+50 Diseños Exclusivos</h3>
+                <p className="text-xs text-muted-foreground max-w-[250px]">
+                  Cada par cuenta una historia. Medias únicas que expresan tu personalidad con más de 50 modelos exclusivos.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <FaHeart className="h-5 w-5 text-primary" />
+              <div className="flex flex-col items-center text-center group transition-all duration-300 hover:scale-105">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
+                  <ShieldCheck className="h-5 w-5 text-primary transition-transform duration-500 group-hover:scale-110" />
                 </div>
-                <h3 className="mb-2 text-sm font-semibold">Calidad Premium</h3>
-                <p className="text-xs text-muted-foreground">
-                  Materiales suaves y duraderos para el máximo confort todo el día.
+                <h3 className="mb-2 text-sm font-bold">100% Algodón Premium</h3>
+                <p className="text-xs text-muted-foreground max-w-[250px]">
+                  Materiales peinados extremadamente suaves y duraderos para asegurar el máximo confort durante todo el día.
                 </p>
               </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <FaTruck className="h-5 w-5 text-primary" />
+              <div className="flex flex-col items-center text-center group transition-all duration-300 hover:scale-105">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
+                  <Truck className="h-5 w-5 text-primary transition-transform duration-500 group-hover:translate-x-1" />
                 </div>
-                <h3 className="mb-2 text-sm font-semibold">Envíos Rápidos</h3>
-                <p className="text-xs text-muted-foreground">
-                  Entrega a todo el país. Recibe tus medias en la puerta de tu casa.
+                <h3 className="mb-2 text-sm font-bold">Envío en 24-48hs</h3>
+                <p className="text-xs text-muted-foreground max-w-[250px]">
+                  Entrega súper rápida a todo el país. Recibe tus medias favoritas en la puerta de tu casa en tiempo récord.
                 </p>
               </div>
             </div>

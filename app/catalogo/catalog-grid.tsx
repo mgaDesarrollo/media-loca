@@ -25,6 +25,17 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [promotionTiers, setPromotionTiers] = useState<PromotionTier[]>([])
+  const [featuredTab, setFeaturedTab] = useState<'bestsellers' | 'new' | 'offers'>('bestsellers')
+
+  // Categorize products deterministically
+  const bestSellers = products.filter((_, idx) => idx % 3 === 0).slice(0, 4)
+  const newDesigns = products.filter((_, idx) => idx % 3 === 1).slice(0, 4)
+  const specialOffers = products.filter((_, idx) => idx % 3 === 2).slice(0, 4)
+
+  const featuredProducts = 
+    featuredTab === 'bestsellers' ? bestSellers :
+    featuredTab === 'new' ? newDesigns :
+    specialOffers
 
   useEffect(() => {
     const fetchPromotions = async () => {
@@ -134,14 +145,47 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
           <h1 className="mb-1 text-2xl font-black tracking-tighter sm:text-4xl">
             MEDIA <span className="text-secondary-foreground">LOCA</span>
           </h1>
-          <p className="mb-4 text-xs font-light text-primary-foreground/80 sm:text-sm">
+          <p className="mb-6 text-xs font-light text-primary-foreground/80 sm:text-sm">
             Diseños únicos que reflejan tu personalidad. Calidad premium en cada paso.
-          </p>
-          <p className="mb-4 text-xs font-light text-primary-foreground/80 sm:text-sm">
-            SITIO EN CONSTRUCCIÓN, ALGUNAS FUNCIONES PUEDEN NO ESTAR DISPONIBLES.
           </p>
 
           {/* Promociones por cantidad - Responsivo */}
+          {promotionTiers && promotionTiers.length > 0 && (
+            <div className="mt-6 flex flex-col items-center">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-secondary-foreground mb-3.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/15">
+                🔥 Combos de Descuento
+              </span>
+              <div className="grid grid-cols-3 gap-2.5 w-full max-w-lg">
+                {promotionTiers
+                  .filter((tier) => tier.min_pairs >= 3 && tier.is_active)
+                  .map((tier) => {
+                    const basePrice = products.length > 0 ? Math.max(...products.map(p => Number(p.price))) : 4500
+                    const discount = Math.round(((basePrice - Number(tier.price_per_pair)) / basePrice) * 100)
+                    
+                    return (
+                      <div
+                        key={tier.id}
+                        className="relative overflow-hidden bg-white/10 backdrop-blur-md rounded-2xl p-2.5 sm:p-3.5 border border-white/10 text-center transition-all duration-300 hover:scale-[1.03] hover:bg-white/15 shadow-lg group"
+                      >
+                        <div className="absolute top-0 right-0 bg-secondary-foreground text-primary text-[8px] sm:text-[9px] font-black px-1.5 py-0.5 rounded-bl-lg uppercase tracking-wider">
+                          {discount}% OFF
+                        </div>
+                        <p className="text-[10px] sm:text-xs font-bold text-white uppercase tracking-wider mt-1">
+                          {tier.max_pairs < 100
+                            ? `${tier.min_pairs}-${tier.max_pairs} pares`
+                            : `${tier.min_pairs}+ pares`
+                          }
+                        </p>
+                        <p className="text-sm sm:text-base font-black text-secondary-foreground mt-1">
+                          {formatPrice(Number(tier.price_per_pair))}
+                          <span className="text-[8px] sm:text-[9px] font-normal text-white/80"> / par</span>
+                        </p>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -160,6 +204,79 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
         onClose={() => setIsModalOpen(false)}
         onAddToCart={handleAddToCart}
       />
+
+      {/* Sección de Destacados */}
+      <section className="bg-muted/20 rounded-3xl p-6 sm:p-8 border border-border/40 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+          <div>
+            <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold tracking-wider uppercase px-3 py-1 rounded-full mb-2">
+              🔥 Recomendados
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+              Nuestros Destacados
+            </h2>
+            <p className="text-muted-foreground text-xs sm:text-sm mt-1">
+              Las medias más queridas, recién salidas del horno o con los mejores precios.
+            </p>
+          </div>
+
+          {/* Tabs selector */}
+          <div className="flex bg-muted p-1 rounded-xl border border-border max-w-fit self-start md:self-auto">
+            <button
+              onClick={() => setFeaturedTab('bestsellers')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                featuredTab === 'bestsellers'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Los más vendidos
+            </button>
+            <button
+              onClick={() => setFeaturedTab('new')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                featuredTab === 'new'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Nuevos diseños
+            </button>
+            <button
+              onClick={() => setFeaturedTab('offers')}
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
+                featuredTab === 'offers'
+                  ? 'bg-background shadow text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Ofertas especiales
+            </button>
+          </div>
+        </div>
+
+        {/* Featured Products Grid */}
+        <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
+          {featuredProducts.map((product) => {
+            const originalIndex = products.findIndex(p => p.id === product.id)
+            return (
+              <div
+                key={`featured-${product.id}`}
+                className="animate-in fade-in duration-300"
+              >
+                <ProductCard
+                  product={product}
+                  onClick={() => handleProductClick(product)}
+                  isBestSeller={featuredTab === 'bestsellers'}
+                  isNew={featuredTab === 'new'}
+                  isOnSale={featuredTab === 'offers'}
+                  index={originalIndex}
+                />
+              </div>
+            )
+          })}
+        </div>
+      </section>
 
       {/* Filter Section */}
       <div className="sticky top-4 z-40 mb-8 flex items-center justify-center rounded-2xl bg-background/80 p-2 backdrop-blur-md shadow-lg border border-muted w-full max-w-fit mx-auto">
@@ -201,6 +318,7 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
               <ProductCard 
                 product={product} 
                 onClick={() => handleProductClick(product)}
+                index={index}
               />
             </div>
           ))}

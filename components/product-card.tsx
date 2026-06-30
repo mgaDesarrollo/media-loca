@@ -9,9 +9,20 @@ import type { Product } from '@/lib/types'
 interface ProductCardProps {
   product: Product
   onClick?: () => void
+  isBestSeller?: boolean
+  isNew?: boolean
+  isOnSale?: boolean
+  index?: number
 }
 
-export function ProductCard({ product, onClick }: ProductCardProps) {
+export function ProductCard({ 
+  product, 
+  onClick,
+  isBestSeller: propBestSeller,
+  isNew: propNew,
+  isOnSale: propOnSale,
+  index
+}: ProductCardProps) {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
@@ -20,6 +31,10 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     }).format(price)
   }
 
+  // Determine state values: prioritize props, fallback to index-based distribution if index is provided
+  const isBestSeller = propBestSeller !== undefined ? propBestSeller : (index !== undefined ? index % 3 === 0 : false)
+  const isNew = propNew !== undefined ? propNew : (index !== undefined ? index % 3 === 1 : false)
+  const isOnSale = propOnSale !== undefined ? propOnSale : (index !== undefined ? index % 3 === 2 : false)
 
   return (
     <Card 
@@ -44,19 +59,34 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
 
         {/* Badges container */}
-        <div className="absolute left-3 top-3 flex flex-col gap-2 max-w-[calc(100%-24px)]">
+        <div className="absolute left-3 top-3 flex flex-col gap-1.5 max-w-[calc(100%-24px)] z-10">
           {product.categories && (
-            <Badge className="max-w-[120px] bg-primary/80 backdrop-blur-md text-primary-foreground border-none font-medium px-2.5 py-0.5 truncate">
+            <Badge className="max-w-[120px] bg-primary/80 backdrop-blur-md text-primary-foreground border-none font-medium px-2 py-0.5 truncate text-[10px]">
               {product.categories.name}
             </Badge>
           )}
+          {isBestSeller && (
+            <Badge className="max-w-[120px] bg-rose-500/90 backdrop-blur-md text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px]">
+              🔥 Top Ventas
+            </Badge>
+          )}
+          {isNew && (
+            <Badge className="max-w-[120px] bg-emerald-500/90 backdrop-blur-md text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px]">
+              ✨ Nuevo
+            </Badge>
+          )}
+          {isOnSale && (
+            <Badge className="max-w-[120px] bg-purple-600/95 backdrop-blur-md text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px]">
+              🏷️ Oferta
+            </Badge>
+          )}
           {product.stock <= 5 && product.stock > 0 && (
-            <Badge className="max-w-[120px] bg-amber-500/90 backdrop-blur-md text-white border-none animate-pulse truncate">
+            <Badge className="max-w-[120px] bg-amber-500/90 backdrop-blur-md text-white border-none animate-pulse truncate px-2 py-0.5 text-[10px]">
               ¡Últimas {product.stock}!
             </Badge>
           )}
           {product.stock === 0 && (
-            <Badge variant="secondary" className="max-w-[120px] bg-destructive/90 backdrop-blur-md text-destructive-foreground border-none truncate">
+            <Badge variant="secondary" className="max-w-[120px] bg-destructive/90 backdrop-blur-md text-destructive-foreground border-none truncate px-2 py-0.5 text-[10px]">
               Agotado
             </Badge>
           )}
@@ -92,9 +122,16 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <div className="flex items-center justify-between pt-1 sm:pt-2">
           <div className="flex flex-col">
             <span className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider">Precio</span>
-            <span className="text-lg sm:text-xl font-bold text-primary tracking-tight">
-              {formatPrice(product.price)}
-            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-lg sm:text-xl font-bold text-primary tracking-tight">
+                {formatPrice(product.price)}
+              </span>
+              {isOnSale && (
+                <span className="text-xs sm:text-sm text-muted-foreground line-through opacity-70 font-normal">
+                  {formatPrice(Math.round(product.price * 1.25))}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>
