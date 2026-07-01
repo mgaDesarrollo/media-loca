@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
-import { Mail, MapPin, Globe, Building, Save } from 'lucide-react'
+import { Mail, MapPin, Globe, Building, Save, Upload, Image as ImageIcon } from 'lucide-react'
 import type { ProfileConfig } from '@/lib/types'
 
 interface ProfileManagerProps {
@@ -30,7 +30,22 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
     description: initialConfig?.description || '',
     social_facebook: initialConfig?.social_facebook || '',
     social_instagram: initialConfig?.social_instagram || '',
+    app_icon: initialConfig?.app_icon || '',
   })
+
+  const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFormData((prev) => ({
+        ...prev,
+        app_icon: reader.result as string,
+      }))
+    }
+    reader.readAsDataURL(file)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,6 +62,7 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
         description: formData.description || null,
         social_facebook: formData.social_facebook || null,
         social_instagram: formData.social_instagram || null,
+        app_icon: formData.app_icon || null,
       })
       toast.success('Perfil guardado correctamente')
       router.refresh()
@@ -102,6 +118,52 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
             />
           </Field>
         </FieldGroup>
+      </InfoCard>
+
+      <InfoCard title="Imagen / Icono de la Aplicación" icon={ImageIcon}>
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="flex-1 space-y-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Esta imagen se utilizará como el icono de la pestaña del navegador (favicon) y como el icono oficial de la aplicación móvil cuando los usuarios la instalen (PWA). Se recomienda usar una imagen cuadrada de alta calidad (ej. 512x512 px) en formato PNG.
+            </p>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg cursor-pointer transition-colors text-sm font-medium shadow-sm">
+                <Upload className="h-4 w-4" />
+                Subir Archivo
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/webp"
+                  className="hidden"
+                  onChange={handleIconChange}
+                />
+              </label>
+              {formData.app_icon && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFormData({ ...formData, app_icon: '' })}
+                >
+                  Restablecer
+                </Button>
+              )}
+            </div>
+          </div>
+          <div className="relative flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl p-4 bg-gray-50 dark:bg-gray-900/50 w-32 h-32 flex-shrink-0">
+            {formData.app_icon ? (
+              <img
+                src={formData.app_icon}
+                alt="Vista previa del icono"
+                className="w-24 h-24 object-contain rounded-lg shadow-md"
+              />
+            ) : (
+              <div className="flex flex-col items-center gap-1 text-gray-400 text-xs">
+                <ImageIcon className="h-8 w-8 opacity-40" />
+                <span>Por defecto</span>
+              </div>
+            )}
+          </div>
+        </div>
       </InfoCard>
 
       <InfoCard title="Contacto" icon={Mail}>

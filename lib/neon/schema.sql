@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS profile_config (
   description TEXT,
   social_facebook TEXT,
   social_instagram TEXT,
+  app_icon TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

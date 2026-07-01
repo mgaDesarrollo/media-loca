@@ -6,7 +6,6 @@
 - Logo demasiado grande y domina el espacio
 - CTA (Call to Action) inexistente
 - Falta de urgencia o escasez
-- No hay prueba social visible
 
 ### Mejoras Sugeridas:
 

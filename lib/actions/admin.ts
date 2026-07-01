@@ -517,6 +517,7 @@ export async function upsertProfileConfig(
         description = ${data.description},
         social_facebook = ${data.social_facebook ?? null},
         social_instagram = ${data.social_instagram ?? null},
+        app_icon = ${data.app_icon ?? null},
         updated_at = NOW()
       WHERE id = ${data.id}
     `
@@ -524,7 +525,7 @@ export async function upsertProfileConfig(
     await sql`
       INSERT INTO profile_config (
         store_name, email, phone, whatsapp, address, description,
-        social_facebook, social_instagram
+        social_facebook, social_instagram, app_icon
       ) VALUES (
         ${data.store_name},
         ${data.email},
@@ -533,7 +534,8 @@ export async function upsertProfileConfig(
         ${data.address},
         ${data.description},
         ${data.social_facebook ?? null},
-        ${data.social_instagram ?? null}
+        ${data.social_instagram ?? null},
+        ${data.app_icon ?? null}
       )
     `
   }
