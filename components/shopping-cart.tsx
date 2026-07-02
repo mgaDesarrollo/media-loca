@@ -98,6 +98,7 @@ export function ShoppingCart({
       if (result.success) {
         const profile = await getProfileConfigPublic()
         const whatsappNumber = profile?.whatsapp || ''
+        const cleanNumber = whatsappNumber.replace(/\D/g, '')
 
         const cartItems = items.map(item =>
           `${item.quantity}x ${item.product.name} - ${formatPrice(item.product.price * item.quantity)}`
@@ -120,8 +121,8 @@ export function ShoppingCart({
           `¿Podrían confirmarme disponibilidad y formas de pago?`
         )
 
-        const whatsappUrl = whatsappNumber
-          ? `https://wa.me/${whatsappNumber}?text=${message}`
+        const whatsappUrl = cleanNumber
+          ? `https://wa.me/${cleanNumber}?text=${message}`
           : `https://wa.me/?text=${message}`
 
         window.open(whatsappUrl, '_blank')

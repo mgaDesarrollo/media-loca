@@ -194,10 +194,11 @@ export default function PedidosPage() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
+                                    const cleanPhone = order.customer_phone!.replace(/\D/g, '')
                                     const message = encodeURIComponent(
                                       `Hola, te escribo sobre tu pedido #${order.id.slice(0, 8)} por un total de ${formatPrice(order.total)}.`
                                     )
-                                    window.open(`https://wa.me/${order.customer_phone}?text=${message}`, '_blank')
+                                    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank')
                                   }}
                                   className="gap-1"
                                 >

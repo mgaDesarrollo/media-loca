@@ -43,6 +43,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   }
 
   const whatsappNumber = profile?.whatsapp || ''
+  const cleanWhatsappNumber = whatsappNumber.replace(/\D/g, '')
   const whatsappMessage = encodeURIComponent(
     `Hola, quiero confirmar el pedido #${order.id.slice(0, 8)} por un total de ${formatPrice(order.total)}`
   )
@@ -143,10 +144,10 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               )}
 
               {/* Acciones */}
-              {order.status === 'pending' && whatsappNumber && (
+              {order.status === 'pending' && cleanWhatsappNumber && (
                 <Button asChild className="w-full gap-2">
                   <a
-                    href={`https://wa.me/${whatsappNumber}?text=${whatsappMessage}`}
+                    href={`https://wa.me/${cleanWhatsappNumber}?text=${whatsappMessage}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
