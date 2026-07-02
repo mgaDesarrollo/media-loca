@@ -13,6 +13,24 @@ import { toast } from 'sonner'
 import { Mail, MapPin, Globe, Building, Save, Upload, Image as ImageIcon } from 'lucide-react'
 import type { ProfileConfig } from '@/lib/types'
 
+interface InfoCardProps {
+  title: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+}
+
+const InfoCard = ({ title, icon: Icon, children }: InfoCardProps) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Icon className="h-5 w-5" />
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>{children}</CardContent>
+  </Card>
+)
+
 interface ProfileManagerProps {
   initialConfig: ProfileConfig | null
 }
@@ -72,26 +90,6 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
 
     setLoading(false)
   }
-
-  const InfoCard = ({
-    title,
-    icon: Icon,
-    children,
-  }: {
-    title: string
-    icon: React.ComponentType<{ className?: string }>
-    children: React.ReactNode
-  }) => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="h-5 w-5" />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
-    </Card>
-  )
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
