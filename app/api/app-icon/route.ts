@@ -12,11 +12,10 @@ export async function GET(request: NextRequest) {
     const size = searchParams.get('size')
 
     if (customIcon && typeof customIcon === 'string' && customIcon.startsWith('data:')) {
-      // Formato: data:image/png;base64,iVBOR...
-      const matches = customIcon.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/)
-      if (matches && matches.length === 3) {
-        const contentType = matches[1]
-        const base64Data = matches[2]
+      const parts = customIcon.split(';base64,')
+      if (parts.length === 2) {
+        const contentType = parts[0].replace('data:', '')
+        const base64Data = parts[1]
         const buffer = Buffer.from(base64Data, 'base64')
 
         return new NextResponse(buffer, {
