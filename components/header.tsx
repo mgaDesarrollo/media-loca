@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -12,12 +13,30 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { User, LogOut, Package, MessageCircle } from 'lucide-react'
 import { FaWhatsapp } from 'react-icons/fa'
+import { getProfileConfigPublic } from '@/lib/actions/admin'
 
 interface HeaderProps {
   isAuthenticated?: boolean
 }
 
 export function Header({ isAuthenticated = false }: HeaderProps) {
+  const [whatsappNumber, setWhatsappNumber] = useState<string>('')
+
+  useEffect(() => {
+    async function fetchConfig() {
+      try {
+        const config = await getProfileConfigPublic()
+        if (config?.whatsapp) {
+          const cleanNumber = config.whatsapp.replace(/\D/g, '')
+          setWhatsappNumber(cleanNumber)
+        }
+      } catch (error) {
+        console.error('Error fetching profile config for header:', error)
+      }
+    }
+    fetchConfig()
+  }, [])
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -38,7 +57,7 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
             asChild
           >
             <a
-              href="https://wa.me/?text=Hola!%20Quiero%20ver%20el%20cat%C3%A1logo%20de%20Media%20Loca"
+              href={whatsappNumber ? `https://wa.me/${whatsappNumber}?text=Hola!%20Quiero%20ver%20el%20cat%C3%A1logo%20de%20Media%20Loca` : 'https://wa.me/?text=Hola!%20Quiero%20ver%20el%20cat%C3%A1logo%20de%20Media%20Loca'}
               target="_blank"
               rel="noopener noreferrer"
             >
