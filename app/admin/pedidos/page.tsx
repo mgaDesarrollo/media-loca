@@ -39,7 +39,13 @@ export default function PedidosPage() {
     try {
       const order = orders.find(o => o.id === orderId)
       const defaultPayment = order?.payment_method || 'cash'
-      const paymentMethod = prompt('Forma de pago (cash, virtual, etc):', defaultPayment) || defaultPayment
+      const input = prompt('Forma de pago (escribe "cash" para Efectivo o "virtual" para Transferencia):', defaultPayment === 'virtual' ? 'virtual' : 'cash')
+      if (input === null) {
+        setActionLoading(null)
+        return
+      }
+      const normalized = input.trim().toLowerCase()
+      const paymentMethod = (normalized === 'virtual' || normalized === 'transfer' || normalized === 'transferencia') ? 'virtual' : 'cash'
       await confirmOrder(orderId, paymentMethod)
       toast.success('Pedido confirmado y venta registrada')
 
