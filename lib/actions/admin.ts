@@ -26,7 +26,11 @@ function revalidateAdmin(paths: string[] = []) {
     '/admin/perfil',
   ]
   for (const path of [...defaults, ...paths]) {
-    revalidatePath(path)
+    try {
+      revalidatePath(path)
+    } catch (error) {
+      console.warn(`[revalidateAdmin] Warning revalidating path ${path}:`, error)
+    }
   }
 }
 
@@ -162,6 +166,7 @@ export async function createOrder(data: {
   customer_phone: string | null
   total: number
   notes: string | null
+  payment_method: string | null
   items: {
     product_id: string
     quantity: number
@@ -176,9 +181,9 @@ export async function createOrder(data: {
     await client.query('BEGIN')
 
     const orderResult = await client.query<{ id: string }>(
-      `INSERT INTO orders (customer_name, customer_email, customer_phone, total, notes, status)
-       VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING id`,
-      [data.customer_name, data.customer_email, data.customer_phone, data.total, data.notes],
+      `INSERT INTO orders (customer_name, customer_email, customer_phone, total, notes, status, payment_method)
+       VALUES ($1, $2, $3, $4, $5, 'pending', $6) RETURNING id`,
+      [data.customer_name, data.customer_email, data.customer_phone, data.total, data.notes, data.payment_method],
     )
     const orderId = orderResult.rows[0].id
 

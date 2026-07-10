@@ -37,7 +37,9 @@ export default function PedidosPage() {
   const handleConfirmOrder = async (orderId: string) => {
     setActionLoading(orderId)
     try {
-      const paymentMethod = prompt('Forma de pago (cash, transfer, etc):', 'cash') || 'cash'
+      const order = orders.find(o => o.id === orderId)
+      const defaultPayment = order?.payment_method || 'cash'
+      const paymentMethod = prompt('Forma de pago (cash, virtual, etc):', defaultPayment) || defaultPayment
       await confirmOrder(orderId, paymentMethod)
       toast.success('Pedido confirmado y venta registrada')
 
@@ -169,6 +171,11 @@ export default function PedidosPage() {
                               <p className="font-medium">{order.customer_name || 'Anónimo'}</p>
                               {order.customer_phone && (
                                 <p className="text-xs text-muted-foreground">{order.customer_phone}</p>
+                              )}
+                              {order.payment_method && (
+                                <p className="text-xs mt-1 text-muted-foreground">
+                                  Pago: <span className="font-semibold text-foreground">{order.payment_method === 'cash' ? 'Efectivo' : 'Transferencia'}</span>
+                                </p>
                               )}
                             </div>
                           </TableCell>

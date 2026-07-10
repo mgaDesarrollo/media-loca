@@ -30,6 +30,7 @@ export function ShoppingCart({
   const [isOpen, setIsOpen] = useState(false)
   const [customerName, setCustomerName] = useState('')
   const [deliveryPreference, setDeliveryPreference] = useState<'envio' | 'retiro' | ''>('')
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'virtual' | ''>('')
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('es-AR', {
@@ -74,6 +75,11 @@ export function ShoppingCart({
       return
     }
 
+    if (!paymentMethod) {
+      alert('Por favor selecciona un método de pago.')
+      return
+    }
+
     try {
       const { createOrder, getProfileConfigPublic } = await import('@/lib/actions/admin')
 
@@ -90,6 +96,7 @@ export function ShoppingCart({
         customer_phone: null,
         total: getTotalPrice(),
         notes: `Pedido desde web - ${getTotalItems()} pares - ${deliveryPreference === 'envio' ? 'Envío' : deliveryPreference === 'retiro' ? 'Retiro' : 'Sin especificar'}`,
+        payment_method: paymentMethod,
         items: orderItems,
       })
 
@@ -108,8 +115,8 @@ export function ShoppingCart({
           ? `\n🎉 ¡Promoción aplicada! Ahorrás ${formatPrice(promotion.savings)}\n`
           : ''
 
-        const customerInfo = customerName || deliveryPreference
-          ? `\n\n📝 Datos del cliente:\n${customerName ? `Nombre: ${customerName}\n` : ''}${deliveryPreference ? `Prefiere: ${deliveryPreference === 'envio' ? 'Envío' : 'Retiro'}\n` : ''}`
+        const customerInfo = customerName || deliveryPreference || paymentMethod
+          ? `\n\n📝 Datos del cliente:\n${customerName ? `Nombre: ${customerName}\n` : ''}${deliveryPreference ? `Prefiere: ${deliveryPreference === 'envio' ? 'Envío' : 'Retiro'}\n` : ''}${paymentMethod ? `Método de pago: ${paymentMethod === 'cash' ? 'Efectivo' : 'Transferencia'}\n` : ''}`
           : ''
 
         const message = encodeURIComponent(
@@ -118,7 +125,7 @@ export function ShoppingCart({
           `Total: ${formatPrice(getTotalPrice())}${promotionText}` +
           `${customerInfo}\n\n` +
           `📋 Número de pedido: #${result.orderId.slice(0, 8)}\n\n` +
-          `¿Podrían confirmarme disponibilidad y formas de pago?`
+          `¿Podrían confirmarme disponibilidad?`
         )
 
         const whatsappUrl = cleanNumber
@@ -363,6 +370,22 @@ export function ShoppingCart({
                       >
                         Retiro
                       </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label htmlFor="payment-method" className="text-xs font-medium text-muted-foreground">
+                        Método de pago (requerido)
+                      </label>
+                      <select
+                        id="payment-method"
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'virtual' | '')}
+                        className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                      >
+                        <option value="" disabled>Selecciona un método de pago</option>
+                        <option value="cash">Efectivo</option>
+                        <option value="virtual">Transferencia</option>
+                      </select>
                     </div>
                   </div>
 

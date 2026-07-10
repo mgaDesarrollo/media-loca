@@ -86,6 +86,7 @@ export interface Order {
   total: number
   notes: string | null
   status: 'pending' | 'confirmed' | 'cancelled'
+  payment_method?: string | null
   created_at: string
   updated_at: string
   order_items?: OrderItem[]
