@@ -31,10 +31,10 @@ export function ProductCard({
     }).format(price)
   }
 
-  // Determine state values: prioritize props, fallback to index-based distribution if index is provided
+  // Determine state values: prioritize props, fallback to product attributes or index-based distribution
   const isBestSeller = propBestSeller !== undefined ? propBestSeller : (index !== undefined ? index % 3 === 0 : false)
   const isNew = propNew !== undefined ? propNew : (index !== undefined ? index % 3 === 1 : false)
-  const isOnSale = propOnSale !== undefined ? propOnSale : (index !== undefined ? index % 3 === 2 : false)
+  const isOnSale = propOnSale !== undefined ? propOnSale : !!product.is_offer
 
   return (
     <Card 

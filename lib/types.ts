@@ -16,6 +16,7 @@ export interface Product {
   category_id: string | null
   stock: number
   is_active: boolean
+  is_offer?: boolean
   created_at: string
   updated_at: string
   categories?: Category

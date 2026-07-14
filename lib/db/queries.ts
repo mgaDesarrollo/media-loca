@@ -172,6 +172,8 @@ export async function getTopSellingProducts(limit = 10) {
     FROM sale_items si
     JOIN products p ON si.product_id = p.id
     LEFT JOIN categories c ON p.category_id = c.id
+    JOIN sales s ON si.sale_id = s.id
+    WHERE s.is_test = false
     GROUP BY p.id, p.name, p.category_id, c.name
     ORDER BY total_quantity DESC
     LIMIT ${limit}
@@ -206,6 +208,8 @@ export async function getSalesByCategory() {
     FROM sale_items si
     JOIN products p ON si.product_id = p.id
     LEFT JOIN categories c ON p.category_id = c.id
+    JOIN sales s ON si.sale_id = s.id
+    WHERE s.is_test = false
     GROUP BY c.id, c.name
     ORDER BY total_revenue DESC
   `
@@ -251,16 +255,21 @@ export async function getProductTurnover() {
     SELECT 
       p.name,
       p.stock,
-      COALESCE(SUM(si.quantity), 0) as total_sold,
+      COALESCE(sales_stats.total_sold, 0) as total_sold,
       p.price,
       CASE 
-        WHEN p.stock > 0 THEN (COALESCE(SUM(si.quantity), 0)::float / p.stock)
+        WHEN p.stock > 0 THEN (COALESCE(sales_stats.total_sold, 0)::float / p.stock)
         ELSE 0 
       END as turnover_ratio
     FROM products p
-    LEFT JOIN sale_items si ON p.id = si.product_id
+    LEFT JOIN (
+      SELECT si.product_id, SUM(si.quantity) as total_sold
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      WHERE s.is_test = false
+      GROUP BY si.product_id
+    ) sales_stats ON p.id = sales_stats.product_id
     WHERE p.is_active = true
-    GROUP BY p.id, p.name, p.stock, p.price
     ORDER BY turnover_ratio DESC
   `
   return rows
@@ -335,12 +344,17 @@ export async function getCriticalStockProducts() {
     SELECT 
       p.name,
       p.stock,
-      COALESCE(SUM(si.quantity), 0) as sold_last_30_days,
+      COALESCE(sales_stats.sold_last_30_days, 0) as sold_last_30_days,
       p.price,
       c.name as category
     FROM products p
-    LEFT JOIN sale_items si ON p.id = si.product_id 
-      AND si.created_at >= NOW() - INTERVAL '30 days'
+    LEFT JOIN (
+      SELECT si.product_id, SUM(si.quantity) as sold_last_30_days
+      FROM sale_items si
+      JOIN sales s ON si.sale_id = s.id
+      WHERE s.is_test = false AND si.created_at >= NOW() - INTERVAL '30 days'
+      GROUP BY si.product_id
+    ) sales_stats ON p.id = sales_stats.product_id
     LEFT JOIN categories c ON p.category_id = c.id
     WHERE p.is_active = true
       AND p.stock <= 5

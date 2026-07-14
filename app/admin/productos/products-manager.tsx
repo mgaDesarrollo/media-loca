@@ -37,6 +37,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
     stock: '',
     category_id: '',
     is_active: true,
+    is_offer: false,
     image_url: '',
   })
   const [imageInputType, setImageInputType] = useState<'url' | 'file'>('url')
@@ -55,6 +56,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
       stock: '',
       category_id: '',
       is_active: true,
+      is_offer: false,
       image_url: '',
     })
     setEditingProduct(null)
@@ -71,6 +73,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
       stock: product.stock.toString(),
       category_id: product.category_id || '',
       is_active: product.is_active,
+      is_offer: product.is_offer || false,
       image_url: product.image_url || '',
     })
     setImageInputType(product.image_url ? 'url' : 'file')
@@ -110,6 +113,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
         stock: parseInt(formData.stock),
         category_id: formData.category_id || null,
         is_active: formData.is_active,
+        is_offer: formData.is_offer,
         image_url: imageUrl || null,
       })
       
@@ -302,19 +306,34 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
                     )}
                   </div>
                 </Field>
-                <Field className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <FieldLabel htmlFor="is_active" className="mb-0">Activo</FieldLabel>
-                    <p className="text-sm text-muted-foreground">
-                      Mostrar en el catalogo publico
-                    </p>
-                  </div>
-                  <Switch
-                    id="is_active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                  />
-                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <FieldLabel htmlFor="is_active" className="mb-0">Activo</FieldLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Mostrar en catálogo público
+                      </p>
+                    </div>
+                    <Switch
+                      id="is_active"
+                      checked={formData.is_active}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+                    />
+                  </Field>
+                  <Field className="flex items-center justify-between rounded-lg border p-3">
+                    <div>
+                      <FieldLabel htmlFor="is_offer" className="mb-0">Oferta</FieldLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Mostrar etiqueta de oferta
+                      </p>
+                    </div>
+                    <Switch
+                      id="is_offer"
+                      checked={formData.is_offer}
+                      onCheckedChange={(checked) => setFormData({ ...formData, is_offer: checked })}
+                    />
+                  </Field>
+                </div>
               </FieldGroup>
               <div className="mt-6 flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
@@ -369,11 +388,18 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
                     <div className="flex items-start justify-between">
                       <div className="min-w-0 flex-1">
                         <CardTitle className="text-base truncate">{product.name}</CardTitle>
-                        {product.categories && (
-                          <Badge variant="secondary" className="mt-1">
-                            {product.categories.name}
-                          </Badge>
-                        )}
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {product.categories && (
+                            <Badge variant="secondary">
+                              {product.categories.name}
+                            </Badge>
+                          )}
+                          {product.is_offer && (
+                            <Badge className="bg-purple-600 hover:bg-purple-700 text-white border-none">
+                              Oferta
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">
                         <Button

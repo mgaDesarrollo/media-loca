@@ -42,6 +42,7 @@ export async function upsertProduct(data: {
   stock: number
   category_id: string | null
   is_active: boolean
+  is_offer?: boolean
   image_url: string | null
 }) {
   await requireAuth()
@@ -57,6 +58,7 @@ export async function upsertProduct(data: {
         stock = ${data.stock},
         category_id = ${data.category_id},
         is_active = CASE WHEN ${data.stock} = 0 THEN false ELSE ${data.is_active} END,
+        is_offer = ${data.is_offer ?? false},
         image_url = ${data.image_url},
         updated_at = NOW()
       WHERE id = ${data.id}
@@ -80,7 +82,7 @@ export async function upsertProduct(data: {
     `)[0]
   } else {
     const result = await sql`
-      INSERT INTO products (name, description, price, stock, category_id, is_active, image_url)
+      INSERT INTO products (name, description, price, stock, category_id, is_active, is_offer, image_url)
       VALUES (
         ${data.name},
         ${data.description},
@@ -88,6 +90,7 @@ export async function upsertProduct(data: {
         ${data.stock},
         ${data.category_id},
         CASE WHEN ${data.stock} = 0 THEN false ELSE ${data.is_active} END,
+        ${data.is_offer ?? false},
         ${data.image_url}
       )
       RETURNING id

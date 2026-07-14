@@ -30,7 +30,7 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
   // Categorize products deterministically
   const bestSellers = products.filter((_, idx) => idx % 3 === 0).slice(0, 4)
   const newDesigns = products.filter((_, idx) => idx % 3 === 1).slice(0, 4)
-  const specialOffers = products.filter((_, idx) => idx % 3 === 2).slice(0, 4)
+  const specialOffers = products.filter((product) => product.is_offer).slice(0, 4)
 
   const featuredProducts = 
     featuredTab === 'bestsellers' ? bestSellers :
