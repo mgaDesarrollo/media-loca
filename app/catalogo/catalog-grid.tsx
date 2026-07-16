@@ -25,17 +25,8 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [promotionTiers, setPromotionTiers] = useState<PromotionTier[]>([])
-  const [featuredTab, setFeaturedTab] = useState<'bestsellers' | 'new' | 'offers'>('bestsellers')
 
-  // Categorize products deterministically
-  const bestSellers = products.filter((_, idx) => idx % 3 === 0).slice(0, 4)
-  const newDesigns = products.filter((_, idx) => idx % 3 === 1).slice(0, 4)
-  const specialOffers = products.filter((product) => product.is_offer).slice(0, 4)
 
-  const featuredProducts = 
-    featuredTab === 'bestsellers' ? bestSellers :
-    featuredTab === 'new' ? newDesigns :
-    specialOffers
 
   useEffect(() => {
     const fetchPromotions = async () => {
@@ -205,78 +196,7 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
         onAddToCart={handleAddToCart}
       />
 
-      {/* Sección de Destacados */}
-      <section className="bg-muted/20 rounded-3xl p-6 sm:p-8 border border-border/40 mb-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
-          <div>
-            <div className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold tracking-wider uppercase px-3 py-1 rounded-full mb-2">
-              🔥 Recomendados
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-              Nuestros Destacados
-            </h2>
-            <p className="text-muted-foreground text-xs sm:text-sm mt-1">
-              Las medias más queridas, recién salidas del horno o con los mejores precios.
-            </p>
-          </div>
 
-          {/* Tabs selector */}
-          <div className="flex bg-muted p-1 rounded-xl border border-border max-w-fit self-start md:self-auto">
-            <button
-              onClick={() => setFeaturedTab('bestsellers')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                featuredTab === 'bestsellers'
-                  ? 'bg-background shadow text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Los más vendidos
-            </button>
-            <button
-              onClick={() => setFeaturedTab('new')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                featuredTab === 'new'
-                  ? 'bg-background shadow text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Nuevos diseños
-            </button>
-            <button
-              onClick={() => setFeaturedTab('offers')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all cursor-pointer ${
-                featuredTab === 'offers'
-                  ? 'bg-background shadow text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Ofertas especiales
-            </button>
-          </div>
-        </div>
-
-        {/* Featured Products Grid */}
-        <div className="grid gap-4 sm:gap-6 grid-cols-2 lg:grid-cols-4">
-          {featuredProducts.map((product) => {
-            const originalIndex = products.findIndex(p => p.id === product.id)
-            return (
-              <div
-                key={`featured-${product.id}`}
-                className="animate-in fade-in duration-300"
-              >
-                <ProductCard
-                  product={product}
-                  onClick={() => handleProductClick(product)}
-                  isBestSeller={featuredTab === 'bestsellers'}
-                  isNew={featuredTab === 'new'}
-                  isOnSale={featuredTab === 'offers'}
-                  index={originalIndex}
-                />
-              </div>
-            )
-          })}
-        </div>
-      </section>
 
       {/* Filter Section */}
       <div className="sticky top-4 z-40 mb-8 flex items-center justify-center rounded-2xl bg-background/80 p-2 backdrop-blur-md shadow-lg border border-muted w-full max-w-fit mx-auto">
