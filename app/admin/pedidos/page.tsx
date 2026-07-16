@@ -50,7 +50,6 @@ export default function PedidosPage() {
       toast.success('Pedido confirmado y venta registrada')
 
       // Preguntar si quiere enviar mensaje automático al cliente
-      const order = orders.find(o => o.id === orderId)
       if (order?.customer_phone) {
         const sendMessage = confirm('¿Quieres enviar un mensaje automático al cliente?')
         if (sendMessage) {
