@@ -39,13 +39,13 @@ export function ProductCard({
       className="group relative overflow-hidden border-none bg-background/50 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 cursor-pointer" 
       onClick={onClick}
     >
-      <div className="relative aspect-[4/5] overflow-hidden bg-muted">
+      <div className="relative aspect-[4/5] overflow-hidden bg-white">
         {product.image_url ? (
           <Image
             src={product.image_url}
             alt={product.name}
             fill
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="object-contain transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary/10 to-primary/30">
@@ -54,7 +54,7 @@ export function ProductCard({
         )}
         
         {/* Overlay on hover */}
-        <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
+        <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />
 
         {/* Badges container */}
         <div className="absolute left-3 top-3 flex flex-col gap-1.5 max-w-[calc(100%-24px)] z-10">

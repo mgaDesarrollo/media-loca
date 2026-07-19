@@ -82,13 +82,13 @@ export function ProductDetailModal({
 
         <div className="flex flex-col lg:flex-row h-full max-h-[90vh] overflow-y-auto lg:overflow-hidden">
           {/* LEFT COLUMN: IMAGE SECTION */}
-          <div className="relative w-full lg:w-[45%] bg-muted/30 aspect-square lg:aspect-auto lg:h-[600px] shrink-0">
+          <div className="relative w-full lg:w-[45%] bg-white aspect-square lg:aspect-auto lg:h-[600px] shrink-0">
             {product.image_url ? (
               <Image
                 src={product.image_url}
                 alt={product.name}
                 fill
-                className="object-cover lg:object-center"
+                className="object-contain"
                 priority
                 sizes="(max-width: 1024px) 100vw, 45vw"
               />
