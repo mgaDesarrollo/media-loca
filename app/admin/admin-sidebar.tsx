@@ -32,7 +32,7 @@ const navItems = [
   { href: '/', label: 'Ver tienda', icon: Home },
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/productos', label: 'Productos', icon: Package },
-  { href: '/admin/categorias', label: 'Categorías', icon: Tag },
+  { href: '/admin/categorias', label: 'Etiquetas y Categorías', icon: Tag },
   { href: '/admin/stock', label: 'Stock', icon: TrendingUp },
   { href: '/admin/ventas', label: 'Ventas', icon: ShoppingCart },
   { href: '/admin/caja', label: 'Caja', icon: Wallet },

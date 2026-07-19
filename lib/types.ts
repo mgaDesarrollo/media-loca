@@ -7,6 +7,15 @@ export interface Category {
   updated_at: string
 }
 
+export interface Tag {
+  id: string
+  name: string
+  color: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -20,6 +29,7 @@ export interface Product {
   created_at: string
   updated_at: string
   categories?: Category
+  tags?: Tag[]
 }
 
 export interface Sale {

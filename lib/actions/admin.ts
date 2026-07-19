@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/auth'
 import { getPool, sql } from '@/lib/db'
-import type { ProfileConfig, PromotionTier, Order, OrderItem } from '@/lib/types'
+import type { ProfileConfig, PromotionTier, Order, OrderItem, Tag } from '@/lib/types'
 
 async function requireAuth() {
   const session = await auth()
@@ -44,10 +44,12 @@ export async function upsertProduct(data: {
   is_active: boolean
   is_offer?: boolean
   image_url: string | null
+  tag_ids?: string[]
 }) {
   await requireAuth()
 
   let product
+  let productId = data.id
 
   if (data.id) {
     await sql`
@@ -63,23 +65,6 @@ export async function upsertProduct(data: {
         updated_at = NOW()
       WHERE id = ${data.id}
     `
-    product = (await sql`
-      SELECT
-        p.*,
-        CASE WHEN c.id IS NULL THEN NULL
-        ELSE json_build_object(
-          'id', c.id,
-          'name', c.name,
-          'description', c.description,
-          'is_active', c.is_active,
-          'created_at', c.created_at,
-          'updated_at', c.updated_at
-        )
-        END AS categories
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.id = ${data.id}
-    `)[0]
   } else {
     const result = await sql`
       INSERT INTO products (name, description, price, stock, category_id, is_active, is_offer, image_url)
@@ -96,24 +81,55 @@ export async function upsertProduct(data: {
       RETURNING id
     `
     const newId = result[0].id
-    product = (await sql`
-      SELECT
-        p.*,
-        CASE WHEN c.id IS NULL THEN NULL
-        ELSE json_build_object(
-          'id', c.id,
-          'name', c.name,
-          'description', c.description,
-          'is_active', c.is_active,
-          'created_at', c.created_at,
-          'updated_at', c.updated_at
-        )
-        END AS categories
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      WHERE p.id = ${newId}
-    `)[0]
+    productId = newId
   }
+
+  // Update product tags
+  await sql`
+    DELETE FROM product_tags WHERE product_id = ${productId}
+  `
+  if (data.tag_ids && data.tag_ids.length > 0) {
+    for (const tagId of data.tag_ids) {
+      await sql`
+        INSERT INTO product_tags (product_id, tag_id)
+        VALUES (${productId}, ${tagId})
+      `
+    }
+  }
+
+  // Get full updated product with categories and tags
+  product = (await sql`
+    SELECT
+      p.*,
+      CASE WHEN c.id IS NULL THEN NULL
+      ELSE json_build_object(
+        'id', c.id,
+        'name', c.name,
+        'description', c.description,
+        'is_active', c.is_active,
+        'created_at', c.created_at,
+        'updated_at', c.updated_at
+      )
+      END AS categories,
+      COALESCE(
+        (SELECT json_agg(json_build_object(
+          'id', t.id,
+          'name', t.name,
+          'color', t.color,
+          'is_active', t.is_active,
+          'created_at', t.created_at,
+          'updated_at', t.updated_at
+         ))
+         FROM product_tags pt
+         JOIN tags t ON pt.tag_id = t.id
+         WHERE pt.product_id = p.id
+        ),
+        '[]'::json
+      ) AS tags
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ${productId}
+  `)[0]
 
   revalidateAdmin()
   return { success: true, product }
@@ -415,6 +431,42 @@ export async function upsertCategory(data: {
 export async function deleteCategory(id: string) {
   await requireAuth()
   await sql`DELETE FROM categories WHERE id = ${id}`
+  revalidateAdmin()
+  return { success: true }
+}
+
+export async function upsertTag(data: {
+  id?: string
+  name: string
+  color: string
+  is_active: boolean
+}) {
+  await requireAuth()
+
+  if (data.id) {
+    await sql`
+      UPDATE tags SET
+        name = ${data.name},
+        color = ${data.color},
+        is_active = ${data.is_active},
+        updated_at = NOW()
+      WHERE id = ${data.id}
+    `
+  } else {
+    await sql`
+      INSERT INTO tags (name, color, is_active)
+      VALUES (${data.name}, ${data.color}, ${data.is_active})
+    `
+  }
+
+  revalidateAdmin()
+  return { success: true }
+}
+
+export async function deleteTag(id: string) {
+  await requireAuth()
+  await sql`DELETE FROM product_tags WHERE tag_id = ${id}`
+  await sql`DELETE FROM tags WHERE id = ${id}`
   revalidateAdmin()
   return { success: true }
 }

@@ -31,10 +31,8 @@ export function ProductCard({
     }).format(price)
   }
 
-  // Determine state values: prioritize props, fallback to product attributes or index-based distribution
-  const isBestSeller = propBestSeller !== undefined ? propBestSeller : (index !== undefined ? index % 3 === 0 : false)
-  const isNew = propNew !== undefined ? propNew : (index !== undefined ? index % 3 === 1 : false)
   const isOnSale = propOnSale !== undefined ? propOnSale : !!product.is_offer
+  const productTags = product.tags || []
 
   return (
     <Card 
@@ -65,16 +63,15 @@ export function ProductCard({
               {product.categories.name}
             </Badge>
           )}
-          {isBestSeller && (
-            <Badge className="max-w-[120px] bg-rose-500/90 backdrop-blur-md text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px]">
-              🔥 Top Ventas
+          {productTags.filter(t => t.is_active !== false).map((tag) => (
+            <Badge 
+              key={tag.id}
+              style={{ backgroundColor: `${tag.color || '#3b82f6'}e6` }}
+              className="max-w-[120px] text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px] truncate"
+            >
+              {tag.name}
             </Badge>
-          )}
-          {isNew && (
-            <Badge className="max-w-[120px] bg-emerald-500/90 backdrop-blur-md text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px]">
-              ✨ Nuevo
-            </Badge>
-          )}
+          ))}
           {isOnSale && (
             <Badge className="max-w-[120px] bg-purple-600/95 backdrop-blur-md text-white border-none font-semibold px-2 py-0.5 shadow-sm text-[10px]">
               🏷️ Oferta

@@ -15,19 +15,21 @@ import { Switch } from '@/components/ui/switch'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2, Search, Upload, Image as ImageIcon } from 'lucide-react'
-import type { Product, Category } from '@/lib/types'
+import type { Product, Category, Tag } from '@/lib/types'
 
 interface ProductsManagerProps {
   initialProducts: Product[]
   categories: Category[]
+  tags: Tag[]
 }
 
-export function ProductsManager({ initialProducts, categories }: ProductsManagerProps) {
+export function ProductsManager({ initialProducts, categories, tags }: ProductsManagerProps) {
   const [products, setProducts] = useState(initialProducts)
   const [search, setSearch] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(false)
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const router = useRouter()
 
   const [formData, setFormData] = useState({
@@ -62,6 +64,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
     setEditingProduct(null)
     setImageInputType('url')
     setSelectedFile(null)
+    setSelectedTagIds([])
   }
 
   const openEditDialog = (product: Product) => {
@@ -78,6 +81,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
     })
     setImageInputType(product.image_url ? 'url' : 'file')
     setSelectedFile(null)
+    setSelectedTagIds(product.tags ? product.tags.map(t => t.id) : [])
     setIsDialogOpen(true)
   }
 
@@ -115,6 +119,7 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
         is_active: formData.is_active,
         is_offer: formData.is_offer,
         image_url: imageUrl || null,
+        tag_ids: selectedTagIds,
       })
       
       if (editingProduct) {
@@ -250,6 +255,45 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
                       ))}
                     </SelectContent>
                   </Select>
+                </Field>
+                <Field>
+                  <FieldLabel>Etiquetas</FieldLabel>
+                  {tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {tags.map((tag) => {
+                        const isSelected = selectedTagIds.includes(tag.id)
+                        return (
+                          <button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedTagIds(selectedTagIds.filter((id) => id !== tag.id))
+                              } else {
+                                setSelectedTagIds([...selectedTagIds, tag.id])
+                              }
+                            }}
+                            style={{
+                              backgroundColor: isSelected ? tag.color : 'transparent',
+                              color: isSelected ? '#fff' : 'currentColor',
+                              borderColor: tag.color
+                            }}
+                            className={`px-3 py-1 rounded-full border text-xs font-semibold transition-all duration-200 cursor-pointer flex items-center gap-1 ${
+                              isSelected 
+                                ? 'shadow-sm scale-105 border-transparent' 
+                                : 'opacity-70 hover:opacity-100 border-dashed'
+                            }`}
+                          >
+                            {tag.name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground pt-1">
+                      No hay etiquetas creadas. Puedes crearlas en Etiquetas y Categorías.
+                    </p>
+                  )}
                 </Field>
                 <Field>
                   <FieldLabel>Imagen del producto</FieldLabel>
@@ -399,6 +443,15 @@ export function ProductsManager({ initialProducts, categories }: ProductsManager
                               Oferta
                             </Badge>
                           )}
+                          {product.tags && product.tags.map((tag) => (
+                            <Badge 
+                              key={tag.id}
+                              style={{ backgroundColor: tag.color }} 
+                              className="text-white border-none"
+                            >
+                              {tag.name}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                       <div className="flex gap-1 flex-shrink-0">

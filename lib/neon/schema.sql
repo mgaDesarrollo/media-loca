@@ -96,6 +96,23 @@ CREATE TABLE IF NOT EXISTS task_notes (
 
 CREATE INDEX IF NOT EXISTS idx_task_notes_user_id ON task_notes(user_id);
 
+CREATE TABLE IF NOT EXISTS tags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL UNIQUE,
+  color TEXT DEFAULT '#3b82f6',
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS product_tags (
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  tag_id UUID NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+  PRIMARY KEY (product_id, tag_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_product_tags_product_id ON product_tags(product_id);
+
 -- Datos iniciales (opcional en entornos nuevos)
 INSERT INTO profile_config (store_name, email, phone, whatsapp, address, description)
 VALUES (
@@ -107,3 +124,9 @@ VALUES (
   'Somos una tienda especializada en medias únicas y divertidas. Calidad, estilo y comodidad en cada par.'
 )
 ON CONFLICT DO NOTHING;
+
+INSERT INTO tags (name, color, is_active) VALUES
+('Top Ventas', '#ef4444', true),
+('Nuevo', '#10b981', true)
+ON CONFLICT (name) DO NOTHING;
+

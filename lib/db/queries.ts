@@ -2,6 +2,7 @@ import { sql } from '@/lib/db'
 import type {
   CashRegisterEntry,
   Category,
+  Tag,
   Product,
   ProfileConfig,
   Sale,
@@ -9,11 +10,18 @@ import type {
   PromotionTier,
 } from '@/lib/types'
 
-type ProductRow = Product & { categories: Category | null }
+type ProductRow = Product & { 
+  categories: Category | null
+  tags: Tag[] | null
+}
 
 function mapProduct(row: ProductRow): Product {
-  const { categories, ...product } = row
-  return categories ? { ...product, categories } : product
+  const { categories, tags, ...product } = row
+  return {
+    ...product,
+    categories: categories || undefined,
+    tags: tags || []
+  }
 }
 
 export async function getCategories(): Promise<Category[]> {
@@ -30,6 +38,20 @@ export async function getActiveCategories(): Promise<Category[]> {
   ` as Promise<Category[]>
 }
 
+export async function getTags(): Promise<Tag[]> {
+  return sql`
+    SELECT * FROM tags ORDER BY name
+  ` as Promise<Tag[]>
+}
+
+export async function getActiveTags(): Promise<Tag[]> {
+  return sql`
+    SELECT * FROM tags
+    WHERE is_active = true
+    ORDER BY name
+  ` as Promise<Tag[]>
+}
+
 export async function getProductsWithCategories(activeOnly = false): Promise<Product[]> {
   const rows = activeOnly
     ? ((await sql`
@@ -44,7 +66,22 @@ export async function getProductsWithCategories(activeOnly = false): Promise<Pro
             'created_at', c.created_at,
             'updated_at', c.updated_at
           )
-          END AS categories
+          END AS categories,
+          COALESCE(
+            (SELECT json_agg(json_build_object(
+              'id', t.id,
+              'name', t.name,
+              'color', t.color,
+              'is_active', t.is_active,
+              'created_at', t.created_at,
+              'updated_at', t.updated_at
+             ))
+             FROM product_tags pt
+             JOIN tags t ON pt.tag_id = t.id
+             WHERE pt.product_id = p.id
+            ),
+            '[]'::json
+          ) AS tags
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         WHERE p.is_active = true
@@ -62,7 +99,22 @@ export async function getProductsWithCategories(activeOnly = false): Promise<Pro
             'created_at', c.created_at,
             'updated_at', c.updated_at
           )
-          END AS categories
+          END AS categories,
+          COALESCE(
+            (SELECT json_agg(json_build_object(
+              'id', t.id,
+              'name', t.name,
+              'color', t.color,
+              'is_active', t.is_active,
+              'created_at', t.created_at,
+              'updated_at', t.updated_at
+             ))
+             FROM product_tags pt
+             JOIN tags t ON pt.tag_id = t.id
+             WHERE pt.product_id = p.id
+            ),
+            '[]'::json
+          ) AS tags
         FROM products p
         LEFT JOIN categories c ON p.category_id = c.id
         ORDER BY p.created_at DESC
