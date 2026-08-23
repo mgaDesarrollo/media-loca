@@ -14,7 +14,7 @@ export function Footer() {
           </div>
           
           <p className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground text-center">
-            Hecho con <FaHeart className="h-3 sm:h-4 w-3 sm:w-4 fill-primary text-primary" /> en Córdoba, Argentina por Eloy
+            Hecho con <FaHeart className="h-3 sm:h-4 w-3 sm:w-4 fill-primary text-primary" /> en Córdoba, Argentina por Gabriel y Mica
           </p>
           
           <nav className="flex flex-wrap justify-center gap-2 sm:gap-4 text-sm text-muted-foreground">

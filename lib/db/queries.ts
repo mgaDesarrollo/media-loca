@@ -200,7 +200,15 @@ export async function getProfileConfig(): Promise<ProfileConfig | null> {
   const rows = await sql`
     SELECT * FROM profile_config ORDER BY created_at ASC LIMIT 1
   `
-  return (rows[0] as ProfileConfig | undefined) ?? null
+  const config = rows[0] as any
+  if (config && typeof config.carousel_images === 'string') {
+    try {
+      config.carousel_images = JSON.parse(config.carousel_images)
+    } catch {
+      config.carousel_images = []
+    }
+  }
+  return (config as ProfileConfig | undefined) ?? null
 }
 
 export async function getPromotionTiers(): Promise<PromotionTier[]> {

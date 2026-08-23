@@ -15,6 +15,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
   turbopack: {}, // Configuración vacía para evitar conflicto con next-pwa
 };
 

@@ -49,7 +49,48 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
     social_facebook: initialConfig?.social_facebook || '',
     social_instagram: initialConfig?.social_instagram || '',
     app_icon: initialConfig?.app_icon || '',
+    carousel_images: initialConfig?.carousel_images || [],
   })
+
+  const handleCarouselImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files) return
+
+    Array.from(files).forEach((file) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFormData((prev) => ({
+          ...prev,
+          carousel_images: [...(prev.carousel_images || []), reader.result as string],
+        }))
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const removeCarouselImage = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      carousel_images: (prev.carousel_images || []).filter((_, i) => i !== index),
+    }))
+  }
+
+  const moveCarouselImage = (index: number, direction: 'up' | 'down') => {
+    const images = [...(formData.carousel_images || [])]
+    if (direction === 'up' && index > 0) {
+      const temp = images[index]
+      images[index] = images[index - 1]
+      images[index - 1] = temp
+    } else if (direction === 'down' && index < images.length - 1) {
+      const temp = images[index]
+      images[index] = images[index + 1]
+      images[index + 1] = temp
+    }
+    setFormData((prev) => ({
+      ...prev,
+      carousel_images: images,
+    }))
+  }
 
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -70,7 +111,7 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
     setLoading(true)
 
     try {
-      await upsertProfileConfig({
+      const payload = {
         id: initialConfig?.id,
         store_name: formData.store_name,
         email: formData.email,
@@ -81,7 +122,9 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
         social_facebook: formData.social_facebook || null,
         social_instagram: formData.social_instagram || null,
         app_icon: formData.app_icon || null,
-      })
+        carousel_images: formData.carousel_images || [],
+      }
+      await upsertProfileConfig(JSON.stringify(payload))
       toast.success('Perfil guardado correctamente')
       router.refresh()
     } catch {
@@ -161,6 +204,74 @@ export function ProfileManager({ initialConfig }: ProfileManagerProps) {
               </div>
             )}
           </div>
+        </div>
+      </InfoCard>
+
+      <InfoCard title="Imágenes del Carrusel de la Página Principal" icon={ImageIcon}>
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Sube las imágenes que se mostrarán en el carrusel de la página principal (debajo de los productos). Se recomienda usar imágenes apaisadas de buena resolución. Puedes subir varias y ordenarlas.
+          </p>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg cursor-pointer transition-colors text-sm font-medium shadow-sm">
+              <Upload className="h-4 w-4" />
+              Subir Imágenes
+              <input
+                type="file"
+                multiple
+                accept="image/png, image/jpeg, image/webp"
+                className="hidden"
+                onChange={handleCarouselImagesChange}
+              />
+            </label>
+          </div>
+
+          {formData.carousel_images && formData.carousel_images.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+              {formData.carousel_images.map((image, index) => (
+                <div key={index} className="relative group border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900/50 aspect-video flex items-center justify-center">
+                  <img
+                    src={image}
+                    alt={`Carrusel ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeCarouselImage(index)}
+                      className="h-8 w-8 p-0"
+                    >
+                      ✕
+                    </Button>
+                    {index > 0 && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => moveCarouselImage(index, 'up')}
+                        className="h-8 w-8 p-0 font-bold"
+                      >
+                        ←
+                      </Button>
+                    )}
+                    {index < formData.carousel_images.length - 1 && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => moveCarouselImage(index, 'down')}
+                        className="h-8 w-8 p-0 font-bold"
+                      >
+                        →
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </InfoCard>
 

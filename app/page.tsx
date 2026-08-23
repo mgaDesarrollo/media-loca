@@ -4,14 +4,16 @@ import { Button } from '@/components/ui/button'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { auth } from '@/auth'
-import { getActiveCategories, getProductsWithCategories } from '@/lib/db/queries'
+import { getActiveCategories, getProductsWithCategories, getProfileConfig } from '@/lib/db/queries'
 import { Sparkles, ShieldCheck, Truck } from 'lucide-react'
 import { CatalogGrid } from '@/app/catalogo/catalog-grid'
+import { HomeCarousel } from '@/components/home-carousel'
 
 export default async function HomePage() {
   const session = await auth()
   const products = await getProductsWithCategories(true)
   const categories = await getActiveCategories()
+  const profileConfig = await getProfileConfig()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -50,39 +52,13 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="border-y border-border/40 bg-muted/30 px-4 py-12">
-          <div className="container mx-auto">
-            <div className="grid gap-6 md:grid-cols-3">
-              <div className="flex flex-col items-center text-center group transition-all duration-300 hover:scale-105">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary transition-transform duration-500 group-hover:rotate-12" />
-                </div>
-                <h3 className="mb-2 text-sm font-bold">+50 Diseños Exclusivos</h3>
-                <p className="text-xs text-muted-foreground max-w-[250px]">
-                  Cada par cuenta una historia. Medias únicas que expresan tu personalidad con más de 50 modelos exclusivos.
-                </p>
-              </div>
-              <div className="flex flex-col items-center text-center group transition-all duration-300 hover:scale-105">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
-                  <ShieldCheck className="h-5 w-5 text-primary transition-transform duration-500 group-hover:scale-110" />
-                </div>
-                <h3 className="mb-2 text-sm font-bold">100% Algodón Premium</h3>
-                <p className="text-xs text-muted-foreground max-w-[250px]">
-                  Materiales peinados extremadamente suaves y duraderos para asegurar el máximo confort durante todo el día.
-                </p>
-              </div>
-              <div className="flex flex-col items-center text-center group transition-all duration-300 hover:scale-105">
-                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 transition-colors duration-300 group-hover:bg-primary/20">
-                  <Truck className="h-5 w-5 text-primary transition-transform duration-500 group-hover:translate-x-1" />
-                </div>
-                <h3 className="mb-2 text-sm font-bold">Envío en 24-48hs</h3>
-                <p className="text-xs text-muted-foreground max-w-[250px]">
-                  Entrega súper rápida a todo el país. Recibe tus medias favoritas en la puerta de tu casa en tiempo récord.
-                </p>
-              </div>
+        {profileConfig?.carousel_images && profileConfig.carousel_images.length > 0 && (
+          <section className="px-4 pb-12">
+            <div className="container mx-auto">
+              <HomeCarousel images={profileConfig.carousel_images} />
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
       </main>
 

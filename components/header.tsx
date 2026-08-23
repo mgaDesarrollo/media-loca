@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { User, LogOut, Package, MessageCircle } from 'lucide-react'
-import { FaWhatsapp } from 'react-icons/fa'
+import { FaWhatsapp, FaInstagram } from 'react-icons/fa'
 import { getProfileConfigPublic } from '@/lib/actions/admin'
 
 interface HeaderProps {
@@ -21,6 +21,7 @@ interface HeaderProps {
 
 export function Header({ isAuthenticated = false }: HeaderProps) {
   const [whatsappNumber, setWhatsappNumber] = useState<string>('')
+  const [instagramUrl, setInstagramUrl] = useState<string>('')
 
   useEffect(() => {
     async function fetchConfig() {
@@ -29,6 +30,9 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
         if (config?.whatsapp) {
           const cleanNumber = config.whatsapp.replace(/\D/g, '')
           setWhatsappNumber(cleanNumber)
+        }
+        if (config?.social_instagram) {
+          setInstagramUrl(config.social_instagram)
         }
       } catch (error) {
         console.error('Error fetching profile config for header:', error)
@@ -65,6 +69,24 @@ export function Header({ isAuthenticated = false }: HeaderProps) {
               <span className="hidden sm:inline">Consultar</span>
             </a>
           </Button>
+
+          {instagramUrl && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              asChild
+            >
+              <a
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <FaInstagram className="h-4 w-4" />
+                <span className="hidden sm:inline">Instagram</span>
+              </a>
+            </Button>
+          )}
           
           {isAuthenticated ? (
             <DropdownMenu>

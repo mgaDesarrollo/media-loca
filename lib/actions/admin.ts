@@ -561,10 +561,13 @@ export async function createSale(data: {
   }
 }
 
-export async function upsertProfileConfig(
-  data: Omit<ProfileConfig, 'id' | 'created_at' | 'updated_at'> & { id?: string },
-) {
+export async function upsertProfileConfig(dataJson: string) {
   await requireAuth()
+  
+  const data = JSON.parse(dataJson)
+  const carouselImagesJson = typeof data.carousel_images === 'string'
+    ? data.carousel_images
+    : JSON.stringify(data.carousel_images || [])
 
   if (data.id) {
     await sql`
@@ -578,6 +581,7 @@ export async function upsertProfileConfig(
         social_facebook = ${data.social_facebook ?? null},
         social_instagram = ${data.social_instagram ?? null},
         app_icon = ${data.app_icon ?? null},
+        carousel_images = ${carouselImagesJson},
         updated_at = NOW()
       WHERE id = ${data.id}
     `
@@ -585,7 +589,7 @@ export async function upsertProfileConfig(
     await sql`
       INSERT INTO profile_config (
         store_name, email, phone, whatsapp, address, description,
-        social_facebook, social_instagram, app_icon
+        social_facebook, social_instagram, app_icon, carousel_images
       ) VALUES (
         ${data.store_name},
         ${data.email},
@@ -595,7 +599,8 @@ export async function upsertProfileConfig(
         ${data.description},
         ${data.social_facebook ?? null},
         ${data.social_instagram ?? null},
-        ${data.app_icon ?? null}
+        ${data.app_icon ?? null},
+        ${carouselImagesJson}
       )
     `
   }
@@ -608,5 +613,13 @@ export async function getProfileConfigPublic(): Promise<ProfileConfig | null> {
   const rows = await sql`
     SELECT * FROM profile_config ORDER BY created_at ASC LIMIT 1
   `
-  return (rows[0] as ProfileConfig | undefined) ?? null
+  const config = rows[0] as any
+  if (config && typeof config.carousel_images === 'string') {
+    try {
+      config.carousel_images = JSON.parse(config.carousel_images)
+    } catch {
+      config.carousel_images = []
+    }
+  }
+  return (config as ProfileConfig | undefined) ?? null
 }

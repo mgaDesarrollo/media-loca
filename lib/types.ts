@@ -74,6 +74,7 @@ export interface ProfileConfig {
   social_facebook: string | null
   social_instagram: string | null
   app_icon: string | null
+  carousel_images: string[] | null
   created_at: string
   updated_at: string
 }
