@@ -144,7 +144,7 @@ export function CatalogGrid({ products, categories }: CatalogGridProps) {
           {promotionTiers && promotionTiers.length > 0 && (
             <div className="mt-6 flex flex-col items-center">
               <span className="text-[9px] sm:text-[10px] uppercase font-bold tracking-widest text-secondary-foreground mb-3.5 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm border border-white/15">
-                🔥 Especial Día del Amigo
+                🔥 Packs Promocionales
               </span>
               <div className="grid grid-cols-3 gap-2.5 w-full max-w-lg">
                 {promotionTiers
