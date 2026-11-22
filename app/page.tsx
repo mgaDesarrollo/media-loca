@@ -25,7 +25,7 @@ export default async function HomePage() {
           <div className="container mx-auto text-center">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50/80 px-4 py-2 text-xs font-medium text-amber-950 shadow-sm sm:text-sm">
               <Sun aria-hidden="true" className="h-4 w-4 text-amber-600" />
-              <span>Navidad de verano: regalá alegría para cada paso</span>
+              <span>Navidad con mucha onda en cada paso.</span>
             </div>
             <div className="mb-4 flex justify-center">
               <Image
