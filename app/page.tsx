@@ -5,7 +5,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { auth } from '@/auth'
 import { getActiveCategories, getProductsWithCategories, getProfileConfig } from '@/lib/db/queries'
-import { Snowflake } from 'lucide-react'
+import { Sun } from 'lucide-react'
 import { CatalogGrid } from '@/app/catalogo/catalog-grid'
 import { HomeCarousel } from '@/components/home-carousel'
 
@@ -23,10 +23,9 @@ export default async function HomePage() {
         <section className="relative overflow-hidden px-4 py-6 md:py-12">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-primary/20 via-background to-background" />
           <div className="container mx-auto text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/80 px-4 py-2 text-xs font-medium text-foreground shadow-sm sm:text-sm">
-              <Snowflake aria-hidden="true" className="h-4 w-4 text-primary" />
-              <span>Un regalo calentito para esta Navidad</span>
-              <Snowflake aria-hidden="true" className="h-4 w-4 text-primary" />
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50/80 px-4 py-2 text-xs font-medium text-amber-950 shadow-sm sm:text-sm">
+              <Sun aria-hidden="true" className="h-4 w-4 text-amber-600" />
+              <span>Navidad de verano: regalá alegría para cada paso</span>
             </div>
             <div className="mb-4 flex justify-center">
               <Image
